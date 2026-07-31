@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APRSM - Sistema de Gestão</title>
+<style>
+/* ============================================================
+   APRSM - Sistema Administrativo
+   Cores oficiais: Verde escuro, Verde claro, Dourado, Branco
+   ============================================================ */
+:root{
+  --verde-escuro:#1b5e20;
+  --verde-medio:#2e7d32;
+  --verde-claro:#66bb6a;
+  --verde-suave:#e8f5e9;
+  --dourado:#c9a227;
+  --dourado-claro:#f1c40f;
+  --branco:#ffffff;
+  --cinza:#f4f6f4;
+  --cinza-borda:#d7dcd7;
+  --texto:#1c2b1c;
+  --texto-suave:#5a6b5a;
+  --danger:#c62828;
+  --aviso:#ef6c00;
+  --sucesso:#2e7d32;
+  --sombra:0 4px 14px rgba(0,0,0,.08);
+  --sombra-forte:0 10px 30px rgba(0,0,0,.15);
+  --radius:14px;
+  --radius-sm:10px;
+}
+[data-tema="escuro"]{
+  --verde-suave:#132a15;
+  --branco:#1a2a1a;
+  --cinza:#0f1a10;
+  --cinza-borda:#26372a;
+  --texto:#eaf3ea;
+  --texto-suave:#a9bda9;
+  --sombra:0 4px 14px rgba(0,0,0,.5);
+  --sombra-forte:0 10px 30px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--cinza);
+  color:var(--texto);
+  font-size:14px;
+  min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer;border:none;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+a{color:var(--verde-medio);text-decoration:none;}
+
+/* Botões */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;justify-content:center;
+  padding:10px 16px;border-radius:var(--radius-sm);
+  background:var(--verde-medio);color:#fff;font-weight:600;font-size:13px;
+  transition:.2s;border:none;
+}
+.btn:hover{background:var(--verde-escuro);transform:translateY(-1px);}
+.btn.dourado{background:var(--dourado);color:#3a2c00;}
+.btn.dourado:hover{background:#b0891f;}
+.btn.claro{background:var(--verde-suave);color:var(--verde-escuro);}
+.btn.perigo{background:var(--danger);}
+.btn.perigo:hover{background:#8e1a1a;}
+.btn.contorno{background:transparent;color:var(--verde-medio);border:2px solid var(--verde-medio);}
+.btn.contorno:hover{background:var(--verde-medio);color:#fff;}
+.btn.pequeno{padding:6px 10px;font-size:12px;}
+
+/* Inputs */
+.campo{margin-bottom:14px;}
+.campo label{display:block;font-weight:600;color:var(--texto);margin-bottom:5px;font-size:13px;}
+.campo input, .campo select, .campo textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--cinza-borda);
+  border-radius:var(--radius-sm);background:var(--branco);color:var(--texto);
+  transition:.15s;
+}
+.campo input:focus,.campo select:focus,.campo textarea:focus{
+  outline:none;border-color:var(--verde-medio);
+  box-shadow:0 0 0 3px rgba(46,125,50,.15);
+}
+.linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+.linha-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+#tela-login{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--verde-escuro),var(--verde-medio) 60%,var(--verde-claro));
+  z-index:1000;padding:20px;
+}
+.login-caixa{
+  background:var(--branco);padding:36px 30px;border-radius:20px;
+  width:100%;max-width:400px;box-shadow:var(--sombra-forte);
+  border-top:6px solid var(--dourado);
+}
+.login-caixa .logo-area{text-align:center;margin-bottom:20px;}
+.login-caixa .logo-circulo{
+  width:96px;height:96px;border-radius:50%;
+  background:var(--verde-suave);margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;
+  border:3px solid var(--dourado);overflow:hidden;
+}
+.login-caixa .logo-circulo img{width:100%;height:100%;object-fit:cover;}
+.login-caixa h1{color:var(--verde-escuro);font-size:22px;margin-bottom:4px;}
+.login-caixa .sub{color:var(--texto-suave);font-size:13px;}
+.login-caixa .btn{width:100%;margin-top:6px;padding:12px;}
+.login-info{margin-top:14px;padding:10px;background:var(--verde-suave);border-radius:8px;
+  font-size:12px;color:var(--verde-escuro);text-align:center;}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#app{display:none;min-height:100vh;}
+.topo{
+  background:linear-gradient(90deg,var(--verde-escuro),var(--verde-medio));
+  color:#fff;padding:12px 20px;
+  display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;box-shadow:var(--sombra);
+}
+.topo .logo-mini{
+  width:44px;height:44px;border-radius:50%;
+  background:#fff;overflow:hidden;flex-shrink:0;
+  border:2px solid var(--dourado);
+  display:flex;align-items:center;justify-content:center;
+}
+.topo .logo-mini img{width:100%;height:100%;object-fit:cover;}
+.topo .titulo{flex:1;min-width:0;}
+.topo .titulo h1{font-size:16px;font-weight:700;line-height:1.15;}
+.topo .titulo small{opacity:.85;font-size:11px;}
+.topo .acoes-topo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.topo .acoes-topo button{
+  background:rgba(255,255,255,.15);color:#fff;padding:8px 10px;
+  border-radius:8px;font-size:12px;
+}
+.topo .acoes-topo button:hover{background:rgba(255,255,255,.28);}
+.btn-menu{display:none;}
+
+.container{display:flex;min-height:calc(100vh - 68px);}
+.lateral{
+  width:230px;background:var(--branco);padding:14px 10px;
+  border-right:1px solid var(--cinza-borda);flex-shrink:0;
+  overflow-y:auto;
+}
+.lateral h3{
+  color:var(--texto-suave);font-size:11px;text-transform:uppercase;
+  padding:10px 12px 6px;letter-spacing:.5px;
+}
+.lateral button{
+  width:100%;display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:transparent;color:var(--texto);
+  border-radius:10px;text-align:left;margin-bottom:2px;font-size:13px;
+  font-weight:500;
+}
+.lateral button:hover{background:var(--verde-suave);color:var(--verde-escuro);}
+.lateral button.ativo{background:var(--verde-medio);color:#fff;}
+.lateral .ico{width:22px;text-align:center;flex-shrink:0;}
+
+.conteudo{flex:1;padding:20px;min-width:0;overflow-x:hidden;}
+
+.painel{
+  background:var(--branco);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--sombra);margin-bottom:18px;
+}
+.painel h2{
+  color:var(--verde-escuro);font-size:18px;margin-bottom:14px;
+  padding-bottom:10px;border-bottom:2px solid var(--dourado);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.painel h2 .icone-pagina{font-size:20px;}
+.painel h2 .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+/* Cards Dashboard */
+.grid-cards{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;
+  margin-bottom:18px;
+}
+.card{
+  background:var(--branco);border-radius:var(--radius);padding:16px;
+  box-shadow:var(--sombra);border-left:5px solid var(--verde-medio);
+  transition:.2s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sombra-forte);}
+.card .rotulo{color:var(--texto-suave);font-size:12px;font-weight:600;text-transform:uppercase;}
+.card .valor{color:var(--verde-escuro);font-size:26px;font-weight:800;margin-top:4px;}
+.card .subv{color:var(--texto-suave);font-size:11px;margin-top:4px;}
+.card.dourado{border-left-color:var(--dourado);}
+.card.dourado .valor{color:var(--dourado);}
+.card.perigo{border-left-color:var(--danger);}
+.card.perigo .valor{color:var(--danger);}
+.card.info{border-left-color:#1976d2;}
+.card.info .valor{color:#1976d2;}
+
+/* Tabelas */
+.tabela-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--cinza-borda);}
+table.dados{
+  width:100%;border-collapse:collapse;background:var(--branco);min-width:600px;
+}
+table.dados th{
+  background:var(--verde-medio);color:#fff;padding:10px 12px;text-align:left;
+  font-size:12px;font-weight:700;text-transform:uppercase;
+}
+table.dados td{
+  padding:10px 12px;border-top:1px solid var(--cinza-borda);
+  font-size:13px;vertical-align:middle;
+}
+table.dados tr:hover td{background:var(--verde-suave);}
+.tag{
+  display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;
+  font-weight:700;text-transform:uppercase;
+}
+.tag.ativo{background:#c8e6c9;color:#1b5e20;}
+.tag.inativo{background:#ffcdd2;color:#b71c1c;}
+.tag.pago{background:#c8e6c9;color:#1b5e20;}
+.tag.aberto{background:#fff3cd;color:#7c5300;}
+.tag.atrasado{background:#ffcdd2;color:#b71c1c;}
+.tag.dourada{background:#fff3cd;color:#7c5300;}
+
+.busca-topo{
+  display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;
+}
+.busca-topo input, .busca-topo select{
+  flex:1;min-width:180px;padding:9px 12px;border:1.5px solid var(--cinza-borda);
+  border-radius:10px;background:var(--branco);color:var(--texto);
+}
+
+/* Modais */
+.modal-fundo{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:flex-start;justify-content:center;
+  z-index:200;padding:20px;overflow-y:auto;
+}
+.modal-fundo.aberto{display:flex;}
+.modal{
+  background:var(--branco);border-radius:16px;padding:22px;
+  width:100%;max-width:720px;box-shadow:var(--sombra-forte);
+  border-top:5px solid var(--dourado);margin:auto;
+}
+.modal.grande{max-width:960px;}
+.modal h3{
+  color:var(--verde-escuro);font-size:18px;margin-bottom:14px;
+  padding-bottom:8px;border-bottom:1px solid var(--cinza-borda);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modal h3 .fechar{
+  background:transparent;color:var(--texto-suave);font-size:22px;padding:2px 8px;
+}
+.modal-acoes{
+  display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;
+  padding-top:14px;border-top:1px solid var(--cinza-borda);
+}
+
+/* Toast */
+#toast-area{
+  position:fixed;bottom:20px;right:20px;z-index:500;
+  display:flex;flex-direction:column;gap:8px;max-width:340px;
+}
+.toast{
+  padding:12px 14px;border-radius:10px;color:#fff;
+  background:var(--verde-medio);box-shadow:var(--sombra-forte);
+  font-size:13px;font-weight:600;
+  animation:entra .25s;
+}
+.toast.erro{background:var(--danger);}
+.toast.aviso{background:var(--aviso);}
+.toast.info{background:#1976d2;}
+@keyframes entra{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* Alertas caixa */
+.alerta-box{
+  padding:12px 14px;border-radius:10px;margin-bottom:10px;
+  border-left:4px solid;display:flex;align-items:center;gap:10px;
+}
+.alerta-box.atraso{background:#ffebee;border-color:var(--danger);color:#8e1a1a;}
+.alerta-box.aviso{background:#fff8e1;border-color:var(--aviso);color:#7c5300;}
+.alerta-box.info{background:#e3f2fd;border-color:#1976d2;color:#0d47a1;}
+.alerta-box.sucesso{background:#e8f5e9;border-color:var(--sucesso);color:var(--verde-escuro);}
+
+/* Foto sócio */
+.foto-socio{
+  width:110px;height:110px;border-radius:12px;
+  background:var(--verde-suave);border:2px dashed var(--verde-medio);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  cursor:pointer;flex-shrink:0;
+}
+.foto-socio img{width:100%;height:100%;object-fit:cover;}
+.foto-socio span{color:var(--verde-escuro);font-size:11px;text-align:center;padding:4px;}
+
+/* Assinatura canvas */
+.assinatura-wrap{
+  border:2px dashed var(--cinza-borda);border-radius:10px;padding:6px;background:#fff;
+}
+.assinatura-wrap canvas{
+  width:100%;height:130px;background:#fff;border-radius:6px;display:block;touch-action:none;
+}
+.assinatura-acoes{display:flex;gap:8px;margin-top:6px;}
+
+/* QR Code */
+.qr-caixa{
+  width:150px;height:150px;background:#fff;padding:8px;
+  border:2px solid var(--verde-medio);border-radius:10px;
+}
+.qr-caixa canvas{width:100%;height:100%;display:block;image-rendering:pixelated;}
+
+/* Charts */
+canvas.chart{width:100%;height:220px;display:block;}
+
+/* Ficha impressão */
+.ficha-cadastro, .lista-frequencia, .doc-pdf{
+  background:#fff;color:#1c2b1c;padding:30px;border-radius:8px;
+  border:1px solid var(--cinza-borda);
+}
+.ficha-header{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:12px;border-bottom:3px solid var(--verde-escuro);
+  margin-bottom:16px;
+}
+.ficha-header .logo{
+  width:70px;height:70px;border-radius:50%;overflow:hidden;
+  border:2px solid var(--dourado);background:var(--verde-suave);flex-shrink:0;
+}
+.ficha-header .logo img{width:100%;height:100%;object-fit:cover;}
+.ficha-header .info h2{color:var(--verde-escuro);font-size:18px;}
+.ficha-header .info p{font-size:11px;color:var(--texto-suave);}
+.ficha-titulo{
+  background:var(--verde-medio);color:#fff;padding:8px 12px;
+  border-radius:6px;text-align:center;font-weight:700;margin-bottom:14px;
+  letter-spacing:1px;
+}
+.ficha-secao{
+  background:var(--verde-suave);color:var(--verde-escuro);
+  padding:5px 10px;font-weight:700;font-size:12px;text-transform:uppercase;
+  border-left:4px solid var(--dourado);margin:12px 0 8px;border-radius:4px;
+}
+.ficha-campo{
+  border-bottom:1px solid #cfd7cf;padding:4px 2px;font-size:12px;margin-bottom:4px;
+}
+.ficha-campo b{color:var(--verde-escuro);}
+.ficha-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;}
+.ficha-rodape{
+  margin-top:20px;padding-top:12px;border-top:2px solid var(--verde-escuro);
+  text-align:center;color:var(--texto-suave);font-size:10px;
+}
+
+/* Print */
+@media print{
+  @page { size: A4; margin: 12mm; }
+  html, body { background:#fff !important; }
+  body > *:not(#area-impressao){ display:none !important; }
+  #area-impressao{ display:block !important; position:static !important; width:100% !important; padding:0 !important; }
+  .no-print{ display:none !important; }
+  .ficha-cadastro, .doc-pdf, .lista-frequencia { border:none !important; box-shadow:none !important; padding:0 !important; }
+}
+#area-impressao{display:none;}
+body.imprimindo #area-impressao{display:block;position:fixed;inset:0;background:#fff;overflow:auto;z-index:9999;padding:20px;}
+body.imprimindo > *:not(#area-impressao){display:none !important;}
+
+/* Ficha modelo APRSM */
+.ficha-modelo{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;background:#fff;font-size:11pt;}
+.ficha-modelo .topo-barra,.ficha-modelo .barra-inferior{height:12px;background:linear-gradient(90deg,#0b4d1f 0%,#0b4d1f 45%,#7cb342 65%,#c9a227 100%);border-radius:2px;}
+.ficha-modelo .topo-barra{margin-bottom:12px;} .ficha-modelo .barra-inferior{margin-top:8px;}
+.ficha-modelo .cabecalho{display:grid;grid-template-columns:110px 1fr 230px;gap:14px;align-items:center;margin-bottom:6px;}
+.ficha-modelo .brasao{width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid #0b4d1f;background:#fff;display:flex;align-items:center;justify-content:center;}
+.ficha-modelo .brasao img{width:100%;height:100%;object-fit:cover;} .ficha-modelo .brasao span{color:#0b4d1f;font-weight:900;font-size:32px;}
+.ficha-modelo .marca h1{color:#0b4d1f;font-size:40pt;font-weight:900;letter-spacing:1px;line-height:1;margin:0;}
+.ficha-modelo .marca .sub{color:#0b4d1f;font-weight:700;font-size:9pt;margin:4px 0 4px;letter-spacing:.5px;}
+.ficha-modelo .marca hr{border:none;border-top:1px solid #0b4d1f;margin:4px 0;}
+.ficha-modelo .marca .lema{color:#0b4d1f;font-weight:800;font-size:9pt;letter-spacing:1px;margin:4px 0 0;}
+.ficha-modelo .valores{display:flex;flex-direction:column;gap:5px;}
+.ficha-modelo .valores .item{display:flex;gap:8px;align-items:center;}
+.ficha-modelo .valores .bola{width:24px;height:24px;border-radius:50%;background:#0b4d1f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.ficha-modelo .valores .txt{font-size:7.5pt;color:#0b4d1f;font-weight:800;line-height:1.2;}
+.ficha-modelo .divisoria{display:flex;align-items:center;gap:8px;margin:8px 0;}
+.ficha-modelo .divisoria .linha{flex:1;height:1px;background:#0b4d1f;}
+.ficha-modelo .divisoria .folha{color:#7cb342;font-size:14px;}
+.ficha-modelo .titulo-ficha{background:#0b4d1f;color:#fff;text-align:center;padding:8px;font-weight:800;font-size:12pt;border-radius:4px;letter-spacing:1px;}
+.ficha-modelo .n-cadastro{text-align:right;font-size:10pt;margin:8px 0 4px;}
+.ficha-modelo .n-cadastro .linh{display:inline-block;border-bottom:1px solid #333;min-width:150px;padding:0 4px;font-weight:700;}
+.ficha-modelo .secao-titulo{background:#e6f2e6;color:#0b4d1f;font-weight:800;font-size:10pt;padding:5px 8px;margin:8px 0 6px;border-radius:2px;}
+.ficha-modelo .campo{display:flex;align-items:baseline;gap:6px;margin:4px 0;font-size:10pt;line-height:1.5;}
+.ficha-modelo .campo .rot{font-weight:600;color:#111;white-space:nowrap;}
+.ficha-modelo .campo .val{flex:1;border-bottom:1px solid #333;min-height:14px;padding:0 4px;}
+.ficha-modelo .row{display:grid;gap:14px;}
+.ficha-modelo .row.c2{grid-template-columns:1fr 1fr;}
+.ficha-modelo .row.c3{grid-template-columns:1fr 1fr 1fr;}
+.ficha-modelo .opcao{display:inline-flex;align-items:center;gap:4px;margin-right:14px;font-size:10pt;}
+.ficha-modelo .cx{display:inline-block;width:11px;height:11px;border:1px solid #333;text-align:center;line-height:9px;font-size:10px;font-weight:900;color:#0b4d1f;}
+.ficha-modelo .termo{font-size:10pt;line-height:1.5;text-align:justify;margin:6px 0;}
+.ficha-modelo .assin-linha{text-align:center;margin:20px 0 2px;font-size:10pt;}
+.ficha-modelo .assin-linha .linh{display:inline-block;border-bottom:1px solid #333;min-width:60%;padding:0 4px;height:18px;}
+.ficha-modelo .assin-legenda{text-align:center;font-size:9pt;color:#333;margin-top:2px;}
+.ficha-modelo .pilares{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;font-size:8pt;color:#0b4d1f;font-weight:800;margin-top:8px;}
+.ficha-modelo .pilares .p{display:flex;align-items:center;gap:6px;}
+.ficha-modelo .pilares .p .b{width:22px;height:22px;border-radius:50%;background:#0b4d1f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.ficha-modelo .brasao-mini{width:28px;height:28px;border-radius:50%;overflow:hidden;border:1.5px solid #0b4d1f;flex-shrink:0;}
+.ficha-modelo .brasao-mini img{width:100%;height:100%;object-fit:cover;}
+.ficha-modelo .foto-cad{float:right;width:100px;height:130px;border:1px solid #0b4d1f;margin:0 0 6px 12px;overflow:hidden;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#888;font-size:8pt;}
+.ficha-modelo .foto-cad img{width:100%;height:100%;object-fit:cover;}
+
+/* Responsivo */
+@media (max-width: 900px){
+  .btn-menu{display:inline-flex;background:rgba(255,255,255,.18);color:#fff;padding:8px 10px;border-radius:8px;}
+  .lateral{
+    position:fixed;left:-260px;top:68px;bottom:0;
+    z-index:60;transition:.25s;box-shadow:var(--sombra-forte);
+  }
+  .lateral.aberta{left:0;}
+  .conteudo{padding:14px;}
+  .topo .titulo h1{font-size:14px;}
+}
+@media (max-width:520px){
+  .grid-cards{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+  .card .valor{font-size:20px;}
+  .painel{padding:14px;}
+  .modal{padding:16px;}
+  .ficha-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body data-tema="claro">
+
+<!-- ============================================================ TELA LOGIN ============================================================ -->
+<div id="tela-login">
+  <div class="login-caixa">
+    <div class="logo-area">
+      <div class="logo-circulo" id="logo-login"></div>
+      <h1 id="nome-assoc-login">APRSM</h1>
+      <p class="sub" id="nome-completo-login">Assoc. dos Produtores Rurais da Comunidade São Martins</p>
+    </div>
+    <form id="form-login">
+      <div class="campo">
+        <label>Usuário</label>
+        <input type="text" id="login-usuario" required autocomplete="username" placeholder="Digite seu usuário" />
+      </div>
+      <div class="campo">
+        <label>Senha</label>
+        <input type="password" id="login-senha" required autocomplete="current-password" placeholder="••••••" />
+      </div>
+      <button class="btn" type="submit">Entrar no Sistema</button>
+      <div class="login-info" id="login-info-txt"></div>
+    </form>
+
+    <!-- Primeiro acesso: definir senha do Administrador -->
+    <form id="form-primeiro-acesso" style="display:none;">
+      <div class="alerta-box info" style="margin-bottom:10px;">
+        <b>Primeiro acesso do Administrador.</b><br/>
+        Defina agora a senha pessoal do ADM. Ela ficará oculta e poderá ser alterada depois.
+      </div>
+      <div class="campo">
+        <label>Usuário do ADM</label>
+        <input type="text" value="admin" readonly />
+      </div>
+      <div class="campo">
+        <label>Nova Senha *</label>
+        <input type="password" id="pa-senha" required minlength="4" autocomplete="new-password" />
+      </div>
+      <div class="campo">
+        <label>Confirmar Senha *</label>
+        <input type="password" id="pa-senha2" required minlength="4" autocomplete="new-password" />
+      </div>
+      <button class="btn" type="submit">Salvar e Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================ APP ============================================================ -->
+<div id="app">
+  <!-- Topo -->
+  <header class="topo no-print">
+    <button class="btn-menu" onclick="toggleMenu()">☰</button>
+    <div class="logo-mini" id="logo-topo"></div>
+    <div class="titulo">
+      <h1 id="nome-assoc-topo">APRSM</h1>
+      <small id="nome-completo-topo">Sistema de Gestão</small>
+    </div>
+    <div class="acoes-topo">
+      <span id="topo-usuario" style="font-size:13px;opacity:.85;margin-right:6px;"></span>
+      <button onclick="alternarTema()" title="Tema Claro/Escuro">🌓</button>
+      <button onclick="mostrarPagina('alertas')" title="Alertas">🔔 <span id="badge-alertas">0</span></button>
+      <button onclick="modalMinhaSenha()" title="Alterar minha senha">🔑</button>
+      <button onclick="sair()" title="Sair">Sair</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Navegação -->
+    <nav class="lateral no-print" id="lateral">
+      <h3 data-grupo="principal">Principal</h3>
+      <button data-pag="dashboard" data-perm="visualizar" onclick="mostrarPagina('dashboard')"><span class="ico">📊</span>Dashboard</button>
+      <button data-pag="alertas" data-perm="visualizar" onclick="mostrarPagina('alertas')"><span class="ico">🔔</span>Alertas</button>
+
+      <h3 data-grupo="cadastros">Cadastros</h3>
+      <button data-pag="socios" data-perm="cadastrarSocios|alterarDados|visualizar" onclick="mostrarPagina('socios')"><span class="ico">👥</span>Sócios</button>
+      <button data-pag="usuarios" data-admin="1" onclick="mostrarPagina('usuarios')"><span class="ico">👤</span>Usuários</button>
+
+      <h3 data-grupo="financeiro">Financeiro</h3>
+      <button data-pag="financeiro" data-perm="registrarPagamentos|visualizar" onclick="mostrarPagina('financeiro')"><span class="ico">💰</span>Financeiro</button>
+      <button data-pag="pagamentos" data-perm="registrarPagamentos|visualizar" onclick="mostrarPagina('pagamentos')"><span class="ico">💳</span>Pagamentos</button>
+      <button data-pag="caixa" data-perm="registrarPagamentos|visualizar" onclick="mostrarPagina('caixa')"><span class="ico">📒</span>Livro Caixa</button>
+
+      <h3 data-grupo="gestao">Gestão</h3>
+      <button data-pag="frequencia" data-perm="registrarAtas|visualizar" onclick="mostrarPagina('frequencia')"><span class="ico">✅</span>Frequência</button>
+      <button data-pag="reunioes" data-perm="registrarAtas|visualizar" onclick="mostrarPagina('reunioes')"><span class="ico">📅</span>Reuniões</button>
+      <button data-pag="atas" data-perm="registrarAtas|visualizar" onclick="mostrarPagina('atas')"><span class="ico">📝</span>Atas</button>
+      <button data-pag="patrimonio" data-perm="alterarDados|visualizar" onclick="mostrarPagina('patrimonio')"><span class="ico">🏛️</span>Patrimônio</button>
+      <button data-pag="documentos" data-perm="alterarDados|visualizar" onclick="mostrarPagina('documentos')"><span class="ico">📁</span>Documentos</button>
+
+      <h3 data-grupo="sistema">Sistema</h3>
+      <button data-pag="config" data-admin="1" onclick="mostrarPagina('config')"><span class="ico">⚙️</span>Configurações</button>
+      <button data-pag="backup" data-admin="1" onclick="mostrarPagina('backup')"><span class="ico">💾</span>Backup</button>
+    </nav>
+
+    <!-- Conteúdo -->
+    <main class="conteudo" id="conteudo"></main>
+  </div>
+</div>
+
+<!-- Modais / Áreas -->
+<div class="modal-fundo" id="modal-fundo"><div class="modal" id="modal-conteudo"></div></div>
+<div id="toast-area"></div>
+<div id="area-impressao"></div>
+
+<script>
+/* ============================================================
+   APRSM - Núcleo do Sistema
+   Persistência compartilhada e segura no Lovable Cloud.
+   ============================================================ */
+
+const CHAVE = 'aprsm_dados_v1';
+const CHAVE_CONFIG = 'aprsm_config_v1';
+const CHAVE_TEMA = 'aprsm_tema_v1';
+const CHAVE_CREDENCIAL_ADM = 'aprsm_credencial_adm_v2';
+
+/* ---------- Conta padrão do Administrador ---------- */
+const ADM_USUARIO = 'marielson';
+const ADM_SENHA_PADRAO = '71245695';
+
+/* ---------- Estado padrão ---------- */
+const dadosIniciais = () => ({
+  socios: [],
+  usuarios: [{
+    id: gerarId(), nome: 'Administrador', usuario: ADM_USUARIO,
+    cargo: 'Administrador', ativo: true,
+    permissoes: todasPermissoes()
+  }],
+  pagamentos: [],
+  receitas: [],
+  despesas: [],
+  reunioes: [],
+  atas: [],
+  frequencias: [],
+  patrimonio: [],
+  documentos: [],
+  proxNumSocio: 1,
+  proxNumAta: 1,
+  criadoEm: new Date().toISOString()
+});
+
+const configIniciais = () => ({
+  nomeAssoc: 'APRSM',
+  nomeCompleto: 'Associação dos Produtores Rurais da Comunidade São Martins',
+  logo: '',
+  telefone: '(00) 00000-0000',
+  email: 'contato@aprsm.org.br',
+  endereco: 'Comunidade São Martins',
+  cnpj: '',
+  valorMensalidade: 20.00,
+  taxaInscricao: 50.00,
+  diaVencimento: 10
+});
+
+function todasPermissoes(){
+  return {
+    cadastrarSocios:true, alterarDados:true, registrarPagamentos:true,
+    gerarPDF:true, imprimir:true, registrarAtas:true, visualizar:true,
+    excluir:true, alterarConfig:true, backup:true, restaurar:true
+  };
+}
+
+/* ---------- Persistência permanente ---------- */
+let dados, config, usuarioAtual = null;
+let salvamentoTimer = null;
+
+function carregar(){
+  try{
+    dados = JSON.parse(localStorage.getItem(CHAVE)) || dadosIniciais();
+    config = JSON.parse(localStorage.getItem(CHAVE_CONFIG)) || configIniciais();
+  }catch(e){ dados = dadosIniciais(); config = configIniciais(); }
+  // Garantias
+  if(!dados.usuarios || dados.usuarios.length===0){
+    dados.usuarios = dadosIniciais().usuarios;
+  }
+  ['socios','pagamentos','receitas','despesas','reunioes','atas','frequencias','patrimonio','documentos']
+    .forEach(k=>{ if(!Array.isArray(dados[k])) dados[k]=[]; });
+  if(!dados.proxNumSocio) dados.proxNumSocio = 1;
+  if(!dados.proxNumAta) dados.proxNumAta = 1;
+}
+function cacheLocal(){
+  localStorage.setItem(CHAVE, JSON.stringify(dados));
+  localStorage.setItem(CHAVE_CONFIG, JSON.stringify(config));
+}
+function salvar(){
+  cacheLocal();
+  if(!usuarioAtual) return Promise.resolve();
+  clearTimeout(salvamentoTimer);
+  return new Promise(resolve=>{
+    salvamentoTimer=setTimeout(async()=>{
+      try{
+        const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'save',dados,config})});
+        if(!r.ok) throw new Error((await r.json()).error||'Falha ao salvar');
+      }catch(e){ toast('Não foi possível sincronizar agora. Os dados continuam protegidos neste aparelho.','erro'); }
+      resolve();
+    },250);
+  });
+}
+async function carregarNuvem(){
+  const r=await fetch('/api/public/aprsm',{credentials:'include'});
+  if(!r.ok) throw new Error('Sessão expirada');
+  const estado=await r.json();
+  const dadosLocais=dados;
+  const configLocal=config;
+  const nuvemVazia=!estado.dados || Object.keys(estado.dados).length===0;
+  const localPreenchido=dadosLocais && ['socios','pagamentos','receitas','despesas','reunioes','atas','frequencias','patrimonio','documentos'].some(k=>Array.isArray(dadosLocais[k])&&dadosLocais[k].length) || !!(configLocal&&configLocal.logo);
+  dados=Object.assign(dadosIniciais(),nuvemVazia&&localPreenchido?dadosLocais:(estado.dados||{}));
+  dados.usuarios=estado.users||[];
+  config=Object.assign(configIniciais(),nuvemVazia&&localPreenchido?configLocal:(estado.config||{}));
+  usuarioAtual=estado.user;
+  cacheLocal();
+  if(nuvemVazia&&localPreenchido) await salvar();
+  return estado;
+}
+
+/* ============================================================
+   SEGURANÇA DE SENHAS
+   As senhas NUNCA são gravadas em texto puro. Guardamos apenas
+   um resumo (hash) SHA-256 com sal aleatório e várias iterações.
+   Implementação em JavaScript puro para funcionar 100% offline
+   (inclusive abrindo o arquivo direto do disco, sem HTTPS).
+   ============================================================ */
+const PW_ITER = 20000;
+
+/* SHA-256 puro (sem dependências externas) */
+const _sha256 = (function(){
+  const K = new Uint32Array([
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  const rr = (x,n)=> (x>>>n)|(x<<(32-n));
+  return function(bytes){
+    const len = bytes.length;
+    const withOne = len + 1;
+    const total = withOne + ((56 - withOne % 64) + 64) % 64 + 8;
+    const m = new Uint8Array(total);
+    m.set(bytes); m[len] = 0x80;
+    const bits = len * 8;
+    m[total-4] = (bits >>> 24) & 0xff; m[total-3] = (bits >>> 16) & 0xff;
+    m[total-2] = (bits >>> 8) & 0xff;  m[total-1] = bits & 0xff;
+    let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,
+        h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+    const w = new Uint32Array(64);
+    for(let i=0;i<total;i+=64){
+      for(let j=0;j<16;j++){
+        w[j] = (m[i+j*4]<<24)|(m[i+j*4+1]<<16)|(m[i+j*4+2]<<8)|m[i+j*4+3];
+      }
+      for(let j=16;j<64;j++){
+        const s0 = rr(w[j-15],7)^rr(w[j-15],18)^(w[j-15]>>>3);
+        const s1 = rr(w[j-2],17)^rr(w[j-2],19)^(w[j-2]>>>10);
+        w[j] = (w[j-16] + s0 + w[j-7] + s1) >>> 0;
+      }
+      let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
+      for(let j=0;j<64;j++){
+        const S1 = rr(e,6)^rr(e,11)^rr(e,25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (h + S1 + ch + K[j] + w[j]) >>> 0;
+        const S0 = rr(a,2)^rr(a,13)^rr(a,22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) >>> 0;
+        h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+      }
+      h0=(h0+a)>>>0; h1=(h1+b)>>>0; h2=(h2+c)>>>0; h3=(h3+d)>>>0;
+      h4=(h4+e)>>>0; h5=(h5+f)>>>0; h6=(h6+g)>>>0; h7=(h7+h)>>>0;
+    }
+    const out = new Uint8Array(32);
+    [h0,h1,h2,h3,h4,h5,h6,h7].forEach((v,i)=>{
+      out[i*4]=(v>>>24)&0xff; out[i*4+1]=(v>>>16)&0xff; out[i*4+2]=(v>>>8)&0xff; out[i*4+3]=v&0xff;
+    });
+    return out;
+  };
+})();
+
+function _bytes(str){
+  const s = unescape(encodeURIComponent(str));
+  const b = new Uint8Array(s.length);
+  for(let i=0;i<s.length;i++) b[i] = s.charCodeAt(i);
+  return b;
+}
+function _hex(bytes){
+  let h=''; for(let i=0;i<bytes.length;i++) h += bytes[i].toString(16).padStart(2,'0');
+  return h;
+}
+function gerarSal(){
+  const b = new Uint8Array(16);
+  if(window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(b);
+  else for(let i=0;i<16;i++) b[i] = Math.floor(Math.random()*256);
+  return _hex(b);
+}
+/* Hash com sal + iterações (deriva lenta, dificulta força bruta) */
+function derivarSenha(senha, sal, iter){
+  iter = iter || PW_ITER;
+  let d = _sha256(_bytes(sal + '|' + senha));
+  for(let i=1;i<iter;i++) d = _sha256(d);
+  return _hex(d);
+}
+/* Comparação de tempo constante */
+function _igual(a, b){
+  if(typeof a!=='string' || typeof b!=='string' || a.length!==b.length) return false;
+  let dif = 0;
+  for(let i=0;i<a.length;i++) dif |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return dif === 0;
+}
+/* Define a credencial do usuário (somente hash é persistido) */
+function definirSenha(user, senha){
+  const sal = gerarSal();
+  user.sal = sal;
+  user.iter = PW_ITER;
+  user.senhaHash = derivarSenha(senha, sal, PW_ITER);
+  delete user.senha; // nunca manter texto puro
+  return user;
+}
+function temSenha(user){ return !!(user && user.senhaHash); }
+function conferirSenha(user, senha){
+  if(!user || !user.senhaHash) return false;
+  return _igual(user.senhaHash, derivarSenha(senha, user.sal||'', user.iter||PW_ITER));
+}
+/* Converte credenciais antigas gravadas em texto puro para hash */
+function migrarSenhas(){
+  let mudou = false;
+  (dados.usuarios||[]).forEach(u=>{
+    if(typeof u.senha === 'string'){
+      if(u.senha) definirSenha(u, u.senha);
+      else delete u.senha;
+      mudou = true;
+    }
+  });
+  if(mudou) salvar();
+}
+/* Remove qualquer campo de credencial de dados exportados */
+function semCredenciais(listaUsuarios){
+  return (listaUsuarios||[]).map(u=>{
+    const c = Object.assign({}, u);
+    delete c.senha; delete c.senhaHash; delete c.sal; delete c.iter;
+    return c;
+  });
+}
+
+/* ---------- Conta do Administrador ----------
+   Usuário e senha definidos pela associação. A senha continua sendo
+   gravada apenas como hash com sal (nunca em texto puro). */
+function acharAdmin(){
+  return dados.usuarios.find(u=>u.usuario===ADM_USUARIO)
+      || dados.usuarios.find(u=>u.usuario==='admin')
+      || dados.usuarios.find(u=>u.cargo==='Administrador');
+}
+/* Garante que a conta do ADM exista com o usuário e a senha configurados */
+function garantirAdmin(){
+  let admin = acharAdmin();
+  let mudou = false;
+  if(!admin){
+    admin = { id:gerarId(), nome:'Administrador', usuario:ADM_USUARIO, cargo:'Administrador',
+      ativo:true, permissoes: todasPermissoes() };
+    dados.usuarios.unshift(admin);
+    mudou = true;
+  }
+  if(admin.usuario !== ADM_USUARIO){ admin.usuario = ADM_USUARIO; mudou = true; }
+  /* Corrige, uma única vez, instalações que ficaram com a credencial anterior
+     ou com um hash incompatível. Alterações futuras de senha são preservadas. */
+  if(localStorage.getItem(CHAVE_CREDENCIAL_ADM)!=='configurada' || !temSenha(admin)){
+    definirSenha(admin, ADM_SENHA_PADRAO);
+    admin.ativo = true;
+    localStorage.setItem(CHAVE_CREDENCIAL_ADM, 'configurada');
+    mudou = true;
+  }
+  if(mudou) salvar();
+}
+
+
+/* ---------- Utilidades ---------- */
+function gerarId(){ return 'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function fmtDinheiro(v){ return 'R$ '+(Number(v)||0).toFixed(2).replace('.',','); }
+function fmtData(iso){ if(!iso) return '—'; const d=new Date(iso); if(isNaN(d)) return iso;
+  return d.toLocaleDateString('pt-BR'); }
+function fmtDataHora(iso){ if(!iso) return '—'; const d=new Date(iso); if(isNaN(d)) return iso;
+  return d.toLocaleString('pt-BR'); }
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function mesAtual(){ return new Date().toISOString().slice(0,7); }
+function anoAtual(){ return new Date().getFullYear(); }
+function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]); }
+function numeroSocio(n){ return 'APRSM-'+String(n).padStart(4,'0'); }
+
+function toast(msg, tipo='sucesso'){
+  const a=document.getElementById('toast-area');
+  const t=document.createElement('div');
+  t.className='toast '+(tipo==='sucesso'?'':tipo);
+  t.textContent=msg;
+  a.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); },3200);
+}
+
+function confirmar(msg){ return window.confirm(msg); }
+
+function abrirModal(html, grande=false){
+  document.getElementById('modal-conteudo').innerHTML = html;
+  document.getElementById('modal-conteudo').classList.toggle('grande', !!grande);
+  document.getElementById('modal-fundo').classList.add('aberto');
+}
+function fecharModal(){ document.getElementById('modal-fundo').classList.remove('aberto'); }
+document.getElementById('modal-fundo').addEventListener('click', e=>{
+  if(e.target.id==='modal-fundo') fecharModal();
+});
+
+/* ============================================================
+   PERMISSÕES
+   ============================================================ */
+function podeUser(u, chave){
+  if(!u) return false;
+  if(u.cargo==='Administrador') return true;
+  return !!(u.permissoes && u.permissoes[chave]);
+}
+function pode(chave){ return podeUser(usuarioAtual, chave); }
+function exigir(chave){
+  if(!pode(chave)){ toast('Você não tem permissão para esta ação.','erro'); return false; }
+  return true;
+}
+
+/* ============================================================
+   LOGIN / LOGOUT
+   ============================================================ */
+/* Mostra tela de primeiro acesso quando o ADM ainda não tem senha */
+function verificarPrimeiroAcesso(){
+  const fLogin = document.getElementById('form-login');
+  const fPA    = document.getElementById('form-primeiro-acesso');
+  const info   = document.getElementById('login-info-txt');
+  fLogin.style.display='block';
+  fPA.style.display='none';
+  if(info) info.textContent='Seus dados são salvos permanentemente e compartilhados com os usuários autorizados.';
+}
+
+document.getElementById('form-primeiro-acesso').addEventListener('submit', function(e){
+  e.preventDefault();
+  const s1 = document.getElementById('pa-senha').value;
+  const s2 = document.getElementById('pa-senha2').value;
+  if(s1.length < 4){ toast('A senha precisa ter ao menos 4 caracteres.','erro'); return; }
+  if(s1 !== s2){ toast('As senhas não coincidem.','erro'); return; }
+  let admin = acharAdmin();
+  if(!admin){
+    admin = { id:gerarId(), nome:'Administrador', usuario:ADM_USUARIO, cargo:'Administrador',
+      ativo:true, permissoes: todasPermissoes() };
+    dados.usuarios.unshift(admin);
+  }
+  definirSenha(admin, s1);
+  salvar();
+  toast('Senha do Administrador criada com sucesso!');
+  verificarPrimeiroAcesso();
+  document.getElementById('login-usuario').value = admin.usuario;
+  document.getElementById('login-senha').focus();
+});
+
+document.getElementById('form-login').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const u = document.getElementById('login-usuario').value.trim();
+  const s = document.getElementById('login-senha').value;
+  try{
+    const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'login',usuario:u,senha:s})});
+    const resp=await r.json();
+    if(!r.ok) throw new Error(resp.error||'Usuário ou senha inválidos.');
+    if(resp.user) usuarioAtual=resp.user;
+    try{ await carregarNuvem(); }catch(e){ if(!usuarioAtual) throw e; }
+  }catch(err){ toast(err.message||'Não foi possível entrar.','erro'); return; }
+  const user = usuarioAtual || {nome:u};
+  document.getElementById('tela-login').style.display='none';
+  document.getElementById('app').style.display='block';
+  const spUser = document.getElementById('topo-usuario');
+  if(spUser) spUser.textContent = user.nome + (user.cargo?' • '+user.cargo:'');
+  aplicarConfigVisual();
+  mostrarPagina('dashboard');
+});
+
+async function sair(){
+  try{ await fetch('/api/public/aprsm',{method:'DELETE',credentials:'include'}); }catch(e){}
+  usuarioAtual = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('tela-login').style.display='flex';
+  verificarPrimeiroAcesso();
+}
+
+/* Modal para o próprio usuário alterar a sua senha */
+function modalMinhaSenha(){
+  if(!usuarioAtual) return;
+  abrirModal(`<h3>Alterar Minha Senha <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-minha-senha">
+      <div class="campo"><label>Senha atual *</label><input type="password" name="atual" required/></div>
+      <div class="campo"><label>Nova senha *</label><input type="password" name="nova" required minlength="4"/></div>
+      <div class="campo"><label>Confirmar nova senha *</label><input type="password" name="nova2" required minlength="4"/></div>
+      <div class="modal-acoes">
+        <button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+        <button class="btn">💾 Salvar</button>
+      </div>
+    </form>`);
+  document.getElementById('f-minha-senha').onsubmit = async function(e){
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    if(fd.get('nova') !== fd.get('nova2')){ toast('As senhas novas não coincidem.','erro'); return; }
+    try{
+      const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'changePassword',atual:fd.get('atual'),nova:fd.get('nova')})});
+      const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
+      fecharModal(); toast('Senha alterada com sucesso!');
+    }catch(err){ toast(err.message||'Não foi possível alterar a senha.','erro'); }
+  };
+}
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+function alternarTema(){
+  const atual = document.body.dataset.tema;
+  const novo = atual==='claro' ? 'escuro' : 'claro';
+  document.body.dataset.tema = novo;
+  localStorage.setItem(CHAVE_TEMA, novo);
+}
+(function(){ const t = localStorage.getItem(CHAVE_TEMA); if(t) document.body.dataset.tema=t; })();
+
+/* ============================================================
+   CONFIG VISUAL
+   ============================================================ */
+function aplicarConfigVisual(){
+  document.getElementById('nome-assoc-topo').textContent = config.nomeAssoc || 'APRSM';
+  document.getElementById('nome-completo-topo').textContent = config.nomeCompleto || '';
+  document.getElementById('nome-assoc-login').textContent = config.nomeAssoc || 'APRSM';
+  document.getElementById('nome-completo-login').textContent = config.nomeCompleto || '';
+  const logoHtml = config.logo
+    ? '<img src="'+config.logo+'" alt="Logo"/>'
+    : '<div style="font-weight:800;color:var(--verde-escuro);font-size:22px;">A</div>';
+  document.getElementById('logo-topo').innerHTML = logoHtml;
+  document.getElementById('logo-login').innerHTML = logoHtml;
+  aplicarPermissoesMenu();
+  atualizarBadgeAlertas();
+}
+
+/* Esconde itens do menu conforme permissões do usuário logado */
+function podeAcessarPagina(perm, adminOnly){
+  if(!usuarioAtual) return false;
+  const isAdmin = usuarioAtual.cargo==='Administrador';
+  if(adminOnly) return isAdmin;
+  if(isAdmin) return true;
+  if(!perm) return true;
+  return perm.split('|').some(k=>pode(k));
+}
+function ehAdmin(){ return !!(usuarioAtual && usuarioAtual.cargo==='Administrador'); }
+
+function aplicarPermissoesMenu(){
+  const nav = document.getElementById('lateral');
+  if(!nav) return;
+  const botoes = nav.querySelectorAll('button[data-pag]');
+  botoes.forEach(b=>{
+    const admOnly = b.dataset.admin==='1';
+    b.style.display = podeAcessarPagina(b.dataset.perm, admOnly) ? '' : 'none';
+  });
+  // Esconde <h3> de grupo cujo(s) botão(ões) estão todos ocultos
+  const grupos = nav.querySelectorAll('h3[data-grupo]');
+  grupos.forEach(h=>{
+    let n = h.nextElementSibling, algum=false;
+    while(n && n.tagName==='BUTTON'){
+      if(n.style.display!=='none'){ algum=true; break; }
+      n = n.nextElementSibling;
+    }
+    h.style.display = algum ? '' : 'none';
+  });
+}
+
+/* ============================================================
+   NAVEGAÇÃO
+   ============================================================ */
+function toggleMenu(){ document.getElementById('lateral').classList.toggle('aberta'); }
+function fecharMenu(){ document.getElementById('lateral').classList.remove('aberta'); }
+
+const paginas = {};
+function paginaPadrao(){
+  const nav = document.getElementById('lateral');
+  const b = nav && nav.querySelector('button[data-pag]:not([style*="display: none"])');
+  return b ? b.dataset.pag : 'dashboard';
+}
+function mostrarPagina(nome){
+  if(!paginas[nome]){ toast('Página não encontrada.','erro'); return; }
+  // Bloqueia acesso a página sem permissão
+  const btn = document.querySelector('.lateral button[data-pag="'+nome+'"]');
+  if(btn && !podeAcessarPagina(btn.dataset.perm, btn.dataset.admin==='1')){
+    toast('Você não tem permissão para acessar esta página.','erro');
+    const alt = paginaPadrao();
+    if(alt && alt!==nome) return mostrarPagina(alt);
+    return;
+  }
+  document.querySelectorAll('.lateral button').forEach(b=>{
+    b.classList.toggle('ativo', b.dataset.pag===nome);
+  });
+  document.getElementById('conteudo').innerHTML = paginas[nome]();
+  fecharMenu();
+  window.scrollTo(0,0);
+  const inic = paginas[nome+'_init'];
+  if(inic) inic();
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+paginas.dashboard = function(){
+  const ativos = dados.socios.filter(s=>s.ativo!==false).length;
+  const inativos = dados.socios.filter(s=>s.ativo===false).length;
+  const mes = mesAtual();
+  const ano = String(anoAtual());
+  const pagsMes = dados.pagamentos.filter(p=>p.data && p.data.startsWith(mes)).reduce((a,p)=>a+Number(p.valor||0),0);
+  const pagsAno = dados.pagamentos.filter(p=>p.data && p.data.startsWith(ano)).reduce((a,p)=>a+Number(p.valor||0),0);
+  const recAno = dados.receitas.filter(r=>r.data && r.data.startsWith(ano)).reduce((a,r)=>a+Number(r.valor||0),0);
+  const despAno = dados.despesas.filter(d=>d.data && d.data.startsWith(ano)).reduce((a,d)=>a+Number(d.valor||0),0);
+  const caixa = pagsAno + recAno - despAno;
+  const atrasadas = mensalidadesAtrasadas().length;
+  const patrimValor = dados.patrimonio.reduce((a,p)=>a+Number(p.valorUnit||0)*Number(p.qtd||1),0);
+  const proxVenc = proximosVencimentos(7).length;
+  const ultPags = dados.pagamentos.slice().sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5);
+
+  const saud = (function(){ const h=new Date().getHours();
+    return h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite'); })();
+  return `
+    <div class="painel">
+      <div class="alerta-box info" style="background:linear-gradient(90deg,var(--verde-suave),transparent);border-left:5px solid var(--dourado);margin-bottom:14px;">
+        <div style="font-size:18px;font-weight:800;color:var(--verde-escuro);">
+          👋 ${saud}, ${escapeHtml(usuarioAtual.nome)}! Seja bem-vindo(a) ao Sistema da ${escapeHtml(config.nomeAssoc||'Associação')}.
+        </div>
+        <div style="font-size:13px;color:var(--texto-suave);margin-top:2px;">
+          ${escapeHtml(usuarioAtual.cargo||'')} • Acesso em ${fmtDataHora(new Date().toISOString())}
+        </div>
+      </div>
+      <h2><span class="icone-pagina">📊</span> Dashboard - ${escapeHtml(config.nomeAssoc)}</h2>
+      <div class="grid-cards">
+        <div class="card"><div class="rotulo">Total de Sócios</div><div class="valor">${dados.socios.length}</div></div>
+        <div class="card"><div class="rotulo">Sócios Ativos</div><div class="valor">${ativos}</div></div>
+        <div class="card perigo"><div class="rotulo">Sócios Inativos</div><div class="valor">${inativos}</div></div>
+        <div class="card dourado"><div class="rotulo">Arrecadado no Mês</div><div class="valor">${fmtDinheiro(pagsMes)}</div></div>
+        <div class="card dourado"><div class="rotulo">Arrecadado no Ano</div><div class="valor">${fmtDinheiro(pagsAno)}</div></div>
+        <div class="card"><div class="rotulo">Total em Caixa</div><div class="valor">${fmtDinheiro(caixa)}</div></div>
+        <div class="card perigo"><div class="rotulo">Mensalidades Atrasadas</div><div class="valor">${atrasadas}</div></div>
+        <div class="card info"><div class="rotulo">Próximos Vencimentos (7d)</div><div class="valor">${proxVenc}</div></div>
+        <div class="card"><div class="rotulo">Atas Cadastradas</div><div class="valor">${dados.atas.length}</div></div>
+        <div class="card"><div class="rotulo">Reuniões</div><div class="valor">${dados.reunioes.length}</div></div>
+        <div class="card dourado"><div class="rotulo">Total Patrimônio</div><div class="valor">${fmtDinheiro(patrimValor)}</div></div>
+        <div class="card info"><div class="rotulo">Usuários</div><div class="valor">${dados.usuarios.length}</div></div>
+      </div>
+
+      <div class="painel">
+        <h2>📈 Financeiro Mensal (${ano})</h2>
+        <canvas id="chart-mensal" class="chart"></canvas>
+      </div>
+
+      <div class="painel">
+        <h2>💳 Últimos Pagamentos</h2>
+        <div class="tabela-wrap">
+          <table class="dados">
+            <thead><tr><th>Data</th><th>Sócio</th><th>Referência</th><th>Valor</th><th>Forma</th></tr></thead>
+            <tbody>
+              ${ultPags.length===0?'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--texto-suave)">Nenhum pagamento registrado</td></tr>':
+                ultPags.map(p=>{
+                  const s = dados.socios.find(x=>x.id===p.socioId);
+                  return `<tr>
+                    <td>${fmtData(p.data)}</td>
+                    <td>${s?escapeHtml(s.nome):'—'}</td>
+                    <td>${escapeHtml(p.referencia||'')}</td>
+                    <td>${fmtDinheiro(p.valor)}</td>
+                    <td>${escapeHtml(p.forma||'')}</td>
+                  </tr>`;
+                }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+paginas.dashboard_init = function(){
+  desenharChartMensal();
+};
+
+function desenharChartMensal(){
+  const cv = document.getElementById('chart-mensal');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w = cv.width = cv.offsetWidth * 2;
+  const h = cv.height = cv.offsetHeight * 2;
+  ctx.scale(1,1);
+  const ano = String(anoAtual());
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const entradas = new Array(12).fill(0), saidas = new Array(12).fill(0);
+  dados.pagamentos.forEach(p=>{ if(p.data && p.data.startsWith(ano)){ const m=parseInt(p.data.slice(5,7))-1; entradas[m]+=Number(p.valor||0);}});
+  dados.receitas.forEach(p=>{ if(p.data && p.data.startsWith(ano)){ const m=parseInt(p.data.slice(5,7))-1; entradas[m]+=Number(p.valor||0);}});
+  dados.despesas.forEach(p=>{ if(p.data && p.data.startsWith(ano)){ const m=parseInt(p.data.slice(5,7))-1; saidas[m]+=Number(p.valor||0);}});
+  const max = Math.max(1, ...entradas, ...saidas);
+  ctx.clearRect(0,0,w,h);
+  const pad = 60, chartH = h - pad - 40, chartW = w - pad - 20;
+  const bw = chartW / 12 / 2 - 6;
+  // eixos
+  ctx.strokeStyle='#ccc'; ctx.beginPath(); ctx.moveTo(pad, 20); ctx.lineTo(pad, 20+chartH); ctx.lineTo(pad+chartW, 20+chartH); ctx.stroke();
+  ctx.fillStyle='#555'; ctx.font='20px sans-serif';
+  for(let i=0;i<=4;i++){
+    const y = 20 + chartH - (chartH*i/4);
+    ctx.fillText(fmtDinheiro(max*i/4), 4, y+6);
+    ctx.strokeStyle='#eee'; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(pad+chartW,y); ctx.stroke();
+  }
+  for(let i=0;i<12;i++){
+    const x = pad + (chartW/12)*i + 10;
+    const hE = (entradas[i]/max)*chartH;
+    const hS = (saidas[i]/max)*chartH;
+    ctx.fillStyle='#2e7d32'; ctx.fillRect(x, 20+chartH-hE, bw, hE);
+    ctx.fillStyle='#c9a227'; ctx.fillRect(x+bw+4, 20+chartH-hS, bw, hS);
+    ctx.fillStyle='#333'; ctx.fillText(meses[i], x, 20+chartH+22);
+  }
+  // legenda
+  ctx.fillStyle='#2e7d32'; ctx.fillRect(pad, 2, 16, 16); ctx.fillStyle='#333'; ctx.fillText('Entradas', pad+22, 15);
+  ctx.fillStyle='#c9a227'; ctx.fillRect(pad+140, 2, 16, 16); ctx.fillStyle='#333'; ctx.fillText('Despesas', pad+162, 15);
+}
+
+/* ============================================================
+   ALERTAS INTELIGENTES
+   ============================================================ */
+/* Retorna o primeiro domingo do mês (ano, mes 0-11) como Date */
+function primeiroDomingo(ano, mes0){
+  const d = new Date(ano, mes0, 1);
+  const dow = d.getDay(); // 0 = domingo
+  const dia = 1 + ((7 - dow) % 7);
+  return new Date(ano, mes0, dia);
+}
+
+function mensalidadesAtrasadas(){
+  const hj = new Date(hoje());
+  const lista = [];
+  dados.socios.forEach(s=>{
+    if(s.ativo===false) return;
+    const inscritoEm = new Date(s.dataCadastro || s.criadoEm || hoje());
+    let ini = new Date(inscritoEm.getFullYear(), inscritoEm.getMonth(), 1);
+    while(ini <= hj){
+      const ref = ini.toISOString().slice(0,7);
+      const venc = primeiroDomingo(ini.getFullYear(), ini.getMonth());
+      if(venc < hj){
+        const pago = dados.pagamentos.some(p=>p.socioId===s.id && p.referencia===ref);
+        if(!pago){
+          lista.push({socio:s, referencia:ref, vencimento:venc.toISOString().slice(0,10), valor:config.valorMensalidade});
+        }
+      }
+      ini.setMonth(ini.getMonth()+1);
+    }
+  });
+  return lista;
+}
+function proximosVencimentos(dias=7){
+  const hj = new Date(hoje());
+  const limite = new Date(hj); limite.setDate(limite.getDate()+dias);
+  const lista = [];
+  dados.socios.forEach(s=>{
+    if(s.ativo===false) return;
+    // Considera o vencimento do mês atual e do próximo, caso esteja dentro da janela
+    for(let off=0; off<=1; off++){
+      const base = new Date(hj.getFullYear(), hj.getMonth()+off, 1);
+      const venc = primeiroDomingo(base.getFullYear(), base.getMonth());
+      if(venc >= hj && venc <= limite){
+        const ref = base.toISOString().slice(0,7);
+        const pago = dados.pagamentos.some(p=>p.socioId===s.id && p.referencia===ref);
+        if(!pago) lista.push({socio:s, referencia:ref, vencimento:venc.toISOString().slice(0,10)});
+      }
+    }
+  });
+  return lista;
+}
+function totalAlertas(){
+  return mensalidadesAtrasadas().length + proximosVencimentos(7).length +
+    dados.socios.filter(s=>s.ativo===false).length;
+}
+function atualizarBadgeAlertas(){
+  const el = document.getElementById('badge-alertas'); if(el) el.textContent = totalAlertas();
+}
+
+paginas.alertas = function(){
+  const atras = mensalidadesAtrasadas();
+  const prox = proximosVencimentos(15);
+  const inativos = dados.socios.filter(s=>s.ativo===false);
+  const ultAtas = dados.atas.slice(-3).reverse();
+  const ultReun = dados.reunioes.slice(-3).reverse();
+  return `
+    <div class="painel">
+      <h2><span class="icone-pagina">🔔</span> Alertas Inteligentes</h2>
+      <div class="painel">
+        <h2 style="font-size:15px;">🚨 Mensalidades Atrasadas (${atras.length})</h2>
+        ${atras.length===0?'<div class="alerta-box sucesso">Nenhuma mensalidade atrasada.</div>':
+          atras.slice(0,20).map(a=>`<div class="alerta-box atraso">
+            <b>${escapeHtml(numeroSocio(a.socio.numero))} - ${escapeHtml(a.socio.nome)}</b> — Ref: ${a.referencia} — Venc: ${fmtData(a.vencimento)} — ${fmtDinheiro(a.valor)}
+          </div>`).join('')}
+      </div>
+      <div class="painel">
+        <h2 style="font-size:15px;">⏰ Próximos Vencimentos (15 dias)</h2>
+        ${prox.length===0?'<div class="alerta-box sucesso">Sem vencimentos próximos.</div>':
+          prox.map(a=>`<div class="alerta-box aviso">
+            <b>${escapeHtml(numeroSocio(a.socio.numero))} - ${escapeHtml(a.socio.nome)}</b> — Venc: ${fmtData(a.vencimento)}
+          </div>`).join('')}
+      </div>
+      <div class="painel">
+        <h2 style="font-size:15px;">🔻 Sócios Inativos (${inativos.length})</h2>
+        ${inativos.length===0?'<div class="alerta-box sucesso">Sem sócios inativos.</div>':
+          inativos.map(s=>`<div class="alerta-box info">${escapeHtml(numeroSocio(s.numero))} - ${escapeHtml(s.nome)}</div>`).join('')}
+      </div>
+      <div class="painel">
+        <h2 style="font-size:15px;">📅 Últimas Reuniões</h2>
+        ${ultReun.length===0?'<div class="alerta-box info">Nenhuma reunião cadastrada.</div>':
+          ultReun.map(r=>`<div class="alerta-box info"><b>${escapeHtml(r.titulo)}</b> — ${fmtData(r.data)} — ${escapeHtml(r.tipo||'')}</div>`).join('')}
+      </div>
+      <div class="painel">
+        <h2 style="font-size:15px;">📝 Últimas Atas</h2>
+        ${ultAtas.length===0?'<div class="alerta-box info">Nenhuma ata cadastrada.</div>':
+          ultAtas.map(a=>`<div class="alerta-box info"><b>Ata Nº ${a.numero}</b> — ${fmtData(a.data)} — ${escapeHtml(a.local||'')}</div>`).join('')}
+      </div>
+    </div>
+  `;
+};
+
+/* ============================================================
+   SÓCIOS
+   ============================================================ */
+paginas.socios = function(){
+  return `
+    <div class="painel">
+      <h2><span class="icone-pagina">👥</span> Sócios
+        <div class="acoes">
+          <button class="btn" onclick="modalSocio()">＋ Novo Sócio</button>
+          <button class="btn dourado" onclick="imprimirListaSocios()">🖨️ Imprimir Lista</button>
+        </div>
+      </h2>
+      <div class="busca-topo">
+        <input type="text" id="busca-socio" placeholder="Buscar por nome, número ou CPF..." oninput="renderSocios()" />
+        <select id="filtro-status" onchange="renderSocios()">
+          <option value="">Todos</option>
+          <option value="ativo">Ativos</option>
+          <option value="inativo">Inativos</option>
+        </select>
+      </div>
+      <div id="lista-socios"></div>
+    </div>
+  `;
+};
+paginas.socios_init = ()=> renderSocios();
+
+function renderSocios(){
+  const q = (document.getElementById('busca-socio')?.value||'').toLowerCase();
+  const f = document.getElementById('filtro-status')?.value||'';
+  let lista = dados.socios.slice();
+  if(f==='ativo') lista = lista.filter(s=>s.ativo!==false);
+  if(f==='inativo') lista = lista.filter(s=>s.ativo===false);
+  if(q) lista = lista.filter(s=>
+    (s.nome||'').toLowerCase().includes(q) ||
+    numeroSocio(s.numero).toLowerCase().includes(q) ||
+    (s.cpf||'').includes(q)
+  );
+  lista.sort((a,b)=>a.numero-b.numero);
+  const el = document.getElementById('lista-socios');
+  if(lista.length===0){ el.innerHTML='<div class="alerta-box info">Nenhum sócio encontrado.</div>'; return; }
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Nº</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead>
+    <tbody>${lista.map(s=>`
+      <tr>
+        <td><b>${escapeHtml(numeroSocio(s.numero))}</b></td>
+        <td>${escapeHtml(s.nome)}</td>
+        <td>${escapeHtml(s.cpf||'')}</td>
+        <td>${escapeHtml(s.telefone||'')}</td>
+        <td>${s.ativo!==false?'<span class="tag ativo">Ativo</span>':'<span class="tag inativo">Inativo</span>'}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn pequeno" onclick="verSocio('${s.id}')">Ver</button>
+          <button class="btn pequeno claro" onclick="modalSocio('${s.id}')">Editar</button>
+          <button class="btn pequeno perigo" onclick="excluirSocio('${s.id}')">×</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function modalSocio(id){
+  if(!exigir(id?'alterarDados':'cadastrarSocios')) return;
+  const s = id ? dados.socios.find(x=>x.id===id) : {numero: dados.proxNumSocio, ativo:true, dataCadastro:hoje(), foto:'', assinatura:''};
+  if(!s) return;
+  abrirModal(`
+    <h3>${id?'Editar':'Novo'} Sócio <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="form-socio">
+      <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+        <div class="foto-socio" onclick="document.getElementById('foto-input').click()" id="foto-preview">
+          ${s.foto?`<img src="${s.foto}"/>`:'<span>Clique para adicionar foto</span>'}
+        </div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="carregarFoto(event)"/>
+        <div style="flex:1;min-width:200px;">
+          <div class="campo"><label>Número</label><input type="text" value="${escapeHtml(numeroSocio(s.numero))}" readonly /></div>
+          <div class="campo"><label>Nome Completo *</label><input type="text" name="nome" required value="${escapeHtml(s.nome||'')}"/></div>
+          <div class="linha">
+            <div class="campo"><label>Status</label>
+              <select name="ativo">
+                <option value="1" ${s.ativo!==false?'selected':''}>Ativo</option>
+                <option value="0" ${s.ativo===false?'selected':''}>Inativo</option>
+              </select>
+            </div>
+            <div class="campo"><label>Data Cadastro</label><input type="date" name="dataCadastro" value="${s.dataCadastro||hoje()}"/></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ficha-secao">Dados Pessoais</div>
+      <div class="linha">
+        <div class="campo"><label>CPF</label><input type="text" name="cpf" value="${escapeHtml(s.cpf||'')}"/></div>
+        <div class="campo"><label>RG</label><input type="text" name="rg" value="${escapeHtml(s.rg||'')}"/></div>
+        <div class="campo"><label>Nascimento</label><input type="date" name="nascimento" value="${s.nascimento||''}"/></div>
+        <div class="campo"><label>Estado Civil</label>
+          <select name="estadoCivil">
+            ${['','Solteiro(a)','Casado(a)','União Estável','Divorciado(a)','Viúvo(a)'].map(x=>`<option ${s.estadoCivil===x?'selected':''}>${x}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Nome do Pai</label><input type="text" name="pai" value="${escapeHtml(s.pai||'')}"/></div>
+        <div class="campo"><label>Nome da Mãe</label><input type="text" name="mae" value="${escapeHtml(s.mae||'')}"/></div>
+      </div>
+
+      <div class="ficha-secao">Contato</div>
+      <div class="linha">
+        <div class="campo"><label>Telefone</label><input type="text" name="telefone" value="${escapeHtml(s.telefone||'')}"/></div>
+        <div class="campo"><label>E-mail</label><input type="email" name="email" value="${escapeHtml(s.email||'')}"/></div>
+      </div>
+
+      <div class="ficha-secao">Endereço</div>
+      <div class="linha">
+        <div class="campo"><label>Endereço</label><input type="text" name="endereco" value="${escapeHtml(s.endereco||'')}"/></div>
+        <div class="campo"><label>Nº</label><input type="text" name="numeroEnd" value="${escapeHtml(s.numeroEnd||'')}"/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Bairro/Comunidade</label><input type="text" name="bairro" value="${escapeHtml(s.bairro||'Comunidade São Martins')}"/></div>
+        <div class="campo"><label>Município</label><input type="text" name="municipio" value="${escapeHtml(s.municipio||'')}"/></div>
+        <div class="campo"><label>UF</label><input type="text" name="uf" maxlength="2" value="${escapeHtml(s.uf||'')}"/></div>
+        <div class="campo"><label>CEP</label><input type="text" name="cep" value="${escapeHtml(s.cep||'')}"/></div>
+      </div>
+
+      <div class="ficha-secao">Atividade Rural</div>
+      <div class="linha">
+        <div class="campo"><label>Propriedade / Sítio</label><input type="text" name="propriedade" value="${escapeHtml(s.propriedade||'')}"/></div>
+        <div class="campo"><label>Área (ha)</label><input type="text" name="area" value="${escapeHtml(s.area||'')}"/></div>
+        <div class="campo"><label>Atividade Principal</label><input type="text" name="atividade" value="${escapeHtml(s.atividade||'')}"/></div>
+      </div>
+
+      <div class="ficha-secao">Assinatura Digital</div>
+      <div class="assinatura-wrap">
+        <canvas id="canvas-assinatura"></canvas>
+      </div>
+      <div class="assinatura-acoes">
+        <button type="button" class="btn pequeno claro" onclick="limparAssinatura()">Limpar</button>
+        <small style="color:var(--texto-suave);align-self:center;">Assine acima com o mouse ou toque</small>
+      </div>
+
+      <div class="ficha-secao">Observações</div>
+      <div class="campo"><textarea name="obs" rows="3">${escapeHtml(s.obs||'')}</textarea></div>
+
+      <div class="modal-acoes">
+        <button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn">💾 Salvar</button>
+      </div>
+    </form>
+  `, true);
+
+  // canvas assinatura
+  setTimeout(()=>iniciarAssinatura(s.assinatura||''), 60);
+  window._fotoTemp = s.foto || '';
+  document.getElementById('form-socio').onsubmit = function(e){
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const novo = Object.fromEntries(fd.entries());
+    novo.ativo = novo.ativo==='1';
+    novo.foto = window._fotoTemp || '';
+    novo.assinatura = obterAssinatura();
+    if(id){
+      novo.atualizadoPor = usuarioAtual.nome+(usuarioAtual.cargo?' - '+usuarioAtual.cargo:'');
+      novo.atualizadoEm  = new Date().toISOString();
+      Object.assign(s, novo);
+      toast('Sócio atualizado!');
+    }else{
+      novo.id = gerarId();
+      novo.numero = dados.proxNumSocio;
+      novo.criadoPor    = usuarioAtual.nome;
+      novo.criadoCargo  = usuarioAtual.cargo || '';
+      novo.criadoEm     = new Date().toISOString();
+      novo.horaCadastro = new Date().toLocaleTimeString('pt-BR');
+      if(!novo.dataCadastro) novo.dataCadastro = hoje();
+      dados.proxNumSocio++;
+      dados.socios.push(novo);
+      toast('Sócio APRSM-'+String(novo.numero).padStart(4,'0')+' cadastrado!');
+    }
+    salvar(); fecharModal(); renderSocios(); atualizarBadgeAlertas();
+  };
+}
+
+function carregarFoto(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => { window._fotoTemp = ev.target.result;
+    document.getElementById('foto-preview').innerHTML = '<img src="'+ev.target.result+'"/>'; };
+  r.readAsDataURL(f);
+}
+
+/* Assinatura */
+let assCtx=null, assDesenhando=false, assCanvas=null;
+function iniciarAssinatura(dataInicial){
+  assCanvas = document.getElementById('canvas-assinatura'); if(!assCanvas) return;
+  const rect = assCanvas.getBoundingClientRect();
+  assCanvas.width = rect.width * 2; assCanvas.height = 130 * 2;
+  assCtx = assCanvas.getContext('2d');
+  assCtx.scale(2,2); assCtx.strokeStyle='#1b5e20'; assCtx.lineWidth=2; assCtx.lineCap='round';
+  if(dataInicial){ const img = new Image(); img.onload=()=>assCtx.drawImage(img,0,0,rect.width,130); img.src=dataInicial; }
+  const pos = e=>{ const r=assCanvas.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return {x:p.clientX-r.left, y:p.clientY-r.top}; };
+  const inicio = e=>{ e.preventDefault(); assDesenhando=true; const p=pos(e); assCtx.beginPath(); assCtx.moveTo(p.x,p.y); };
+  const mover = e=>{ if(!assDesenhando) return; e.preventDefault(); const p=pos(e); assCtx.lineTo(p.x,p.y); assCtx.stroke(); };
+  const fim = ()=>{ assDesenhando=false; };
+  assCanvas.addEventListener('mousedown',inicio); assCanvas.addEventListener('mousemove',mover);
+  assCanvas.addEventListener('mouseup',fim); assCanvas.addEventListener('mouseleave',fim);
+  assCanvas.addEventListener('touchstart',inicio); assCanvas.addEventListener('touchmove',mover); assCanvas.addEventListener('touchend',fim);
+}
+function limparAssinatura(){ if(assCtx&&assCanvas){ assCtx.clearRect(0,0,assCanvas.width,assCanvas.height); } }
+function obterAssinatura(){ return assCanvas?assCanvas.toDataURL('image/png'):''; }
+
+function excluirSocio(id){
+  if(!exigir('excluir')) return;
+  if(!confirmar('Excluir este sócio? Esta ação não pode ser desfeita.')) return;
+  dados.socios = dados.socios.filter(s=>s.id!==id);
+  salvar(); renderSocios(); toast('Sócio excluído.','info');
+}
+
+function verSocio(id){
+  const s = dados.socios.find(x=>x.id===id); if(!s) return;
+  const pags = dados.pagamentos.filter(p=>p.socioId===id).sort((a,b)=>b.data.localeCompare(a.data));
+  const freqs = dados.frequencias.filter(f=>(f.presentes||[]).some(x=>x.socioId===id));
+  const totalPago = pags.reduce((a,p)=>a+Number(p.valor||0),0);
+  abrirModal(`
+    <h3>Sócio ${escapeHtml(numeroSocio(s.numero))} <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <div class="foto-socio" style="cursor:default;">${s.foto?`<img src="${s.foto}"/>`:'<span>Sem foto</span>'}</div>
+        <div class="qr-caixa" style="margin-top:10px;"><canvas id="qr-socio"></canvas></div>
+      </div>
+      <div style="flex:1;min-width:220px;">
+        <p><b>Nome:</b> ${escapeHtml(s.nome)}</p>
+        <p><b>CPF:</b> ${escapeHtml(s.cpf||'—')}</p>
+        <p><b>Telefone:</b> ${escapeHtml(s.telefone||'—')}</p>
+        <p><b>E-mail:</b> ${escapeHtml(s.email||'—')}</p>
+        <p><b>Endereço:</b> ${escapeHtml(s.endereco||'—')}, ${escapeHtml(s.bairro||'')}, ${escapeHtml(s.municipio||'')}/${escapeHtml(s.uf||'')}</p>
+        <p><b>Propriedade:</b> ${escapeHtml(s.propriedade||'—')} — ${escapeHtml(s.area||'')}ha</p>
+        <p><b>Atividade:</b> ${escapeHtml(s.atividade||'—')}</p>
+        <p><b>Status:</b> ${s.ativo!==false?'<span class="tag ativo">Ativo</span>':'<span class="tag inativo">Inativo</span>'}</p>
+        <p><b>Total pago:</b> ${fmtDinheiro(totalPago)}</p>
+      </div>
+    </div>
+    <div class="ficha-secao">Histórico Financeiro (${pags.length} pagamentos)</div>
+    <div class="tabela-wrap" style="max-height:200px;overflow:auto;">
+      <table class="dados">
+        <thead><tr><th>Data</th><th>Referência</th><th>Valor</th><th>Forma</th></tr></thead>
+        <tbody>${pags.length===0?'<tr><td colspan="4" style="text-align:center;padding:12px">Sem pagamentos</td></tr>':
+          pags.map(p=>`<tr><td>${fmtData(p.data)}</td><td>${escapeHtml(p.referencia||'')}</td><td>${fmtDinheiro(p.valor)}</td><td>${escapeHtml(p.forma||'')}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="ficha-secao">Frequência (${freqs.length} presenças)</div>
+    <div style="max-height:120px;overflow:auto;font-size:12px;">
+      ${freqs.length===0?'<p style="color:var(--texto-suave);padding:6px;">Sem registros</p>':
+        freqs.map(f=>`<p>• ${fmtData(f.data)} - ${escapeHtml(f.titulo||'')}</p>`).join('')}
+    </div>
+    <div class="modal-acoes">
+      <button class="btn contorno" onclick="fecharModal()">Fechar</button>
+      <button class="btn dourado" onclick="imprimirFichaSocio('${s.id}')">🖨️ Imprimir Ficha</button>
+    </div>
+  `, true);
+  setTimeout(()=>desenharQR('qr-socio', numeroSocio(s.numero)+'|'+s.nome),60);
+}
+
+/* ============================================================
+   QR CODE (visual, offline)
+   Gera um padrão visual estável baseado em hash da string.
+   ============================================================ */
+function desenharQR(canvasId, texto){
+  const c = document.getElementById(canvasId); if(!c) return;
+  const ctx = c.getContext('2d');
+  const rect = c.getBoundingClientRect();
+  const size = Math.floor(Math.min(rect.width, rect.height) || 140);
+  c.width = size; c.height = size;
+  const n = 21; // grid
+  const cell = size/n;
+  // hash bits
+  const bits = [];
+  let seed = 0;
+  for(let i=0;i<texto.length;i++){ seed = ((seed<<5) - seed + texto.charCodeAt(i)) | 0; }
+  for(let i=0;i<n*n;i++){
+    seed = (seed * 1664525 + 1013904223) | 0;
+    bits.push(((seed>>>0) & 1) === 1);
+  }
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
+  ctx.fillStyle='#1b5e20';
+  // marcadores nos cantos (padrão tipo QR)
+  const marker = (x,y)=>{
+    ctx.fillRect(x*cell, y*cell, 7*cell, 7*cell);
+    ctx.fillStyle='#fff'; ctx.fillRect((x+1)*cell,(y+1)*cell,5*cell,5*cell);
+    ctx.fillStyle='#1b5e20'; ctx.fillRect((x+2)*cell,(y+2)*cell,3*cell,3*cell);
+  };
+  const marcador = (x,y)=>{
+    const antX=x, antY=y;
+    for(let i=0;i<7;i++)for(let j=0;j<7;j++){
+      const borda = i===0||i===6||j===0||j===6;
+      const centro = i>=2&&i<=4&&j>=2&&j<=4;
+      if(borda||centro){ ctx.fillStyle='#1b5e20'; ctx.fillRect((antX+i)*cell,(antY+j)*cell,cell,cell); }
+      else{ ctx.fillStyle='#fff'; ctx.fillRect((antX+i)*cell,(antY+j)*cell,cell,cell); }
+    }
+  };
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    // pular áreas dos marcadores
+    if((i<8&&j<8)||(i>n-9&&j<8)||(i<8&&j>n-9)) continue;
+    if(bits[i*n+j]){ ctx.fillStyle='#1b5e20'; ctx.fillRect(i*cell,j*cell,cell,cell); }
+  }
+  marcador(0,0); marcador(n-7,0); marcador(0,n-7);
+}
+
+/* ============================================================
+   USUÁRIOS
+   ============================================================ */
+paginas.usuarios = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">👤</span> Controle de Usuários
+      <div class="acoes"><button class="btn" onclick="modalUsuario()">＋ Novo Usuário</button></div>
+    </h2>
+    <div id="lista-usuarios"></div>
+  </div>`;
+};
+paginas.usuarios_init = ()=> renderUsuarios();
+function renderUsuarios(){
+  const el = document.getElementById('lista-usuarios');
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Nome</th><th>Usuário</th><th>Cargo</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead>
+    <tbody>${dados.usuarios.map(u=>`
+      <tr>
+        <td>${escapeHtml(u.nome)}</td>
+        <td>${escapeHtml(u.usuario)}</td>
+        <td><span class="tag dourada">${escapeHtml(u.cargo)}</span></td>
+        <td>${u.ativo!==false?'<span class="tag ativo">Ativo</span>':'<span class="tag inativo">Inativo</span>'}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn pequeno claro" onclick="modalUsuario('${u.id}')">Editar</button>
+          ${u.usuario!=='admin'?`<button class="btn pequeno perigo" onclick="excluirUsuario('${u.id}')">×</button>`:''}
+        </td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+function modalUsuario(id){
+  if(!ehAdmin()){ toast('Apenas o Administrador pode gerenciar usuários.','erro'); return; }
+  const cargos = ['Presidente','Vice-presidente','Secretário','Tesoureiro','Diretor','Personalizado'];
+  const u = id ? dados.usuarios.find(x=>x.id===id) : {nome:'',usuario:'',cargo:'Diretor',ativo:true,
+    permissoes:{cadastrarSocios:true, alterarDados:true, registrarPagamentos:true, gerarPDF:true, imprimir:true, registrarAtas:true, visualizar:true, excluir:false, alterarConfig:false, backup:false, restaurar:false}};
+  const bloqAdmin = u.usuario==='admin';
+  // Permissões disponíveis para usuários comuns (admin-only removidas)
+  const perms = [
+    ['cadastrarSocios','Cadastrar Sócios'],['alterarDados','Alterar Dados'],
+    ['registrarPagamentos','Registrar Pagamentos'],['gerarPDF','Gerar PDF'],
+    ['imprimir','Imprimir'],['registrarAtas','Registrar Atas'],
+    ['visualizar','Visualizar']
+  ];
+  abrirModal(`
+    <h3>${id?'Editar':'Novo'} Usuário <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="form-usuario">
+      <div class="linha">
+        <div class="campo"><label>Nome *</label><input type="text" name="nome" required value="${escapeHtml(u.nome)}"/></div>
+        <div class="campo"><label>Usuário *</label><input type="text" name="usuario" required value="${escapeHtml(u.usuario)}" ${bloqAdmin?'readonly':''}/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Senha *</label><input type="password" name="senha" ${id?'':'required'} placeholder="${id?'(deixe em branco para manter)':''}" value=""/></div>
+        <div class="campo"><label>Cargo</label>
+          <select name="cargo" ${bloqAdmin?'disabled':''}>${(bloqAdmin?['Administrador']:cargos).map(c=>`<option ${u.cargo===c?'selected':''}>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Status</label>
+          <select name="ativo" ${bloqAdmin?'disabled':''}><option value="1" ${u.ativo!==false?'selected':''}>Ativo</option><option value="0" ${u.ativo===false?'selected':''}>Inativo</option></select>
+        </div>
+      </div>
+      ${bloqAdmin?'<div class="alerta-box info" style="font-size:12px;">Administrador possui automaticamente todas as permissões do sistema.</div>':`
+      <div class="ficha-secao">Permissões do Usuário</div>
+      <div class="linha-3">
+        ${perms.map(([k,l])=>`<label style="display:flex;gap:6px;align-items:center;font-size:13px;padding:6px;background:var(--verde-suave);border-radius:6px;">
+          <input type="checkbox" name="p_${k}" ${u.permissoes && u.permissoes[k]?'checked':''}/> ${l}
+        </label>`).join('')}
+      </div>
+      <div style="font-size:11.5px;color:var(--texto-suave);margin-top:6px;">
+        Backup, Restauração, Configurações, Exclusão e Gestão de Usuários são funções exclusivas do Administrador.
+      </div>`}
+      <div class="modal-acoes">
+        <button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn">💾 Salvar</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('form-usuario').onsubmit = async function(e){
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const permissoes = bloqAdmin ? todasPermissoes() : {excluir:false, alterarConfig:false, backup:false, restaurar:false};
+    if(!bloqAdmin) perms.forEach(([k])=>{ permissoes[k]= fd.get('p_'+k)==='on'; });
+    const senhaNova = fd.get('senha');
+    const dadosU = {
+      nome: fd.get('nome'), usuario: fd.get('usuario'),
+      cargo: bloqAdmin?'Administrador':fd.get('cargo'),
+      ativo: bloqAdmin?true:(fd.get('ativo')==='1'),
+      permissoes
+    };
+    if(!id && !senhaNova){ toast('Informe a senha do novo usuário.','erro'); return; }
+    try{
+      const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'saveUser',id:id||undefined,...dadosU,senha:senhaNova||undefined})});
+      const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
+      await carregarNuvem(); fecharModal(); renderUsuarios(); toast(id?'Usuário atualizado!':'Usuário cadastrado!');
+    }catch(err){ toast(err.message||'Não foi possível salvar o usuário.','erro'); }
+  };
+}
+async function excluirUsuario(id){
+  if(!ehAdmin()){ toast('Apenas o Administrador pode excluir usuários.','erro'); return; }
+  const u = dados.usuarios.find(x=>x.id===id);
+  if(u && u.usuario==='admin'){ toast('Não é possível excluir o admin.','erro'); return; }
+  if(!confirmar('Excluir este usuário?')) return;
+  try{
+    const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'deleteUser',id})});
+    const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
+    await carregarNuvem(); renderUsuarios(); toast('Usuário excluído.','info');
+  }catch(err){ toast(err.message||'Não foi possível excluir o usuário.','erro'); }
+}
+
+
+/* ============================================================
+   FINANCEIRO (Receitas / Despesas / Prestação)
+   ============================================================ */
+paginas.financeiro = function(){
+  const totRec = dados.receitas.reduce((a,r)=>a+Number(r.valor||0),0);
+  const totDesp = dados.despesas.reduce((a,d)=>a+Number(d.valor||0),0);
+  const totMens = dados.pagamentos.reduce((a,p)=>a+Number(p.valor||0),0);
+  const saldo = totMens + totRec - totDesp;
+  return `<div class="painel">
+    <h2><span class="icone-pagina">💰</span> Financeiro
+      <div class="acoes">
+        <button class="btn" onclick="modalReceita()">＋ Receita</button>
+        <button class="btn perigo" onclick="modalDespesa()">＋ Despesa</button>
+        <button class="btn dourado" onclick="imprimirPrestacao()">🖨️ Prestação de Contas</button>
+      </div>
+    </h2>
+    <div class="grid-cards">
+      <div class="card"><div class="rotulo">Mensalidades</div><div class="valor">${fmtDinheiro(totMens)}</div></div>
+      <div class="card dourado"><div class="rotulo">Receitas</div><div class="valor">${fmtDinheiro(totRec)}</div></div>
+      <div class="card perigo"><div class="rotulo">Despesas</div><div class="valor">${fmtDinheiro(totDesp)}</div></div>
+      <div class="card info"><div class="rotulo">Saldo Total</div><div class="valor">${fmtDinheiro(saldo)}</div></div>
+    </div>
+
+    <div class="painel"><h2>📥 Receitas</h2>
+      <div class="tabela-wrap"><table class="dados">
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+        <tbody>${dados.receitas.length===0?'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--texto-suave)">Nenhuma receita</td></tr>':
+          dados.receitas.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(r=>`
+          <tr><td>${fmtData(r.data)}</td><td>${escapeHtml(r.descricao)}</td><td>${escapeHtml(r.categoria||'')}</td><td>${fmtDinheiro(r.valor)}</td>
+          <td style="text-align:right"><button class="btn pequeno perigo" onclick="excluirReceita('${r.id}')">×</button></td></tr>`).join('')}
+        </tbody></table></div>
+    </div>
+
+    <div class="painel"><h2>📤 Despesas</h2>
+      <div class="tabela-wrap"><table class="dados">
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+        <tbody>${dados.despesas.length===0?'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--texto-suave)">Nenhuma despesa</td></tr>':
+          dados.despesas.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(d=>`
+          <tr><td>${fmtData(d.data)}</td><td>${escapeHtml(d.descricao)}</td><td>${escapeHtml(d.categoria||'')}</td><td>${fmtDinheiro(d.valor)}</td>
+          <td style="text-align:right"><button class="btn pequeno perigo" onclick="excluirDespesa('${d.id}')">×</button></td></tr>`).join('')}
+        </tbody></table></div>
+    </div>
+  </div>`;
+};
+function modalReceita(){
+  if(!exigir('registrarPagamentos')) return;
+  abrirModal(`<h3>Nova Receita <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-rec">
+      <div class="linha">
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" name="valor" required/></div>
+      </div>
+      <div class="campo"><label>Descrição *</label><input type="text" name="descricao" required/></div>
+      <div class="linha">
+        <div class="campo"><label>Categoria</label>
+          <select name="categoria">${['Doação','Venda','Taxa de Inscrição','Evento','Convênio','Outros'].map(c=>`<option>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Responsável</label><input type="text" name="responsavel" value="${escapeHtml(usuarioAtual.nome)}"/></div>
+      </div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-rec').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.id = gerarId(); dados.receitas.push(o); salvar(); fecharModal();
+    mostrarPagina('financeiro'); toast('Receita registrada!');
+  };
+}
+function modalDespesa(){
+  if(!exigir('registrarPagamentos')) return;
+  abrirModal(`<h3>Nova Despesa <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-desp">
+      <div class="linha">
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" name="valor" required/></div>
+      </div>
+      <div class="campo"><label>Descrição *</label><input type="text" name="descricao" required/></div>
+      <div class="linha">
+        <div class="campo"><label>Categoria</label>
+          <select name="categoria">${['Material','Manutenção','Serviço','Contas','Equipamento','Evento','Outros'].map(c=>`<option>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Responsável</label><input type="text" name="responsavel" value="${escapeHtml(usuarioAtual.nome)}"/></div>
+      </div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-desp').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.id = gerarId(); dados.despesas.push(o); salvar(); fecharModal();
+    mostrarPagina('financeiro'); toast('Despesa registrada!');
+  };
+}
+function excluirReceita(id){ if(!exigir('excluir')) return; if(!confirmar('Excluir?'))return; dados.receitas=dados.receitas.filter(x=>x.id!==id); salvar(); mostrarPagina('financeiro'); }
+function excluirDespesa(id){ if(!exigir('excluir')) return; if(!confirmar('Excluir?'))return; dados.despesas=dados.despesas.filter(x=>x.id!==id); salvar(); mostrarPagina('financeiro'); }
+
+/* ============================================================
+   PAGAMENTOS
+   ============================================================ */
+paginas.pagamentos = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">💳</span> Pagamentos
+      <div class="acoes">
+        <button class="btn" onclick="modalPagamento()">＋ Mensalidade</button>
+        <button class="btn dourado" onclick="modalTaxaInscricao()">＋ Taxa de Inscrição</button>
+      </div>
+    </h2>
+    <div class="busca-topo">
+      <input type="text" id="busca-pag" placeholder="Buscar por sócio ou referência..." oninput="renderPagamentos()"/>
+    </div>
+    <div id="lista-pags"></div>
+  </div>`;
+};
+paginas.pagamentos_init = ()=> renderPagamentos();
+function renderPagamentos(){
+  const q = (document.getElementById('busca-pag')?.value||'').toLowerCase();
+  let lista = dados.pagamentos.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  if(q) lista = lista.filter(p=>{
+    const s = dados.socios.find(x=>x.id===p.socioId);
+    return (s && s.nome.toLowerCase().includes(q)) || (p.referencia||'').includes(q);
+  });
+  const el = document.getElementById('lista-pags');
+  if(lista.length===0){ el.innerHTML='<div class="alerta-box info">Nenhum pagamento.</div>'; return; }
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Data</th><th>Sócio</th><th>Tipo</th><th>Referência</th><th>Valor</th><th>Forma</th><th>Recebido por</th><th></th></tr></thead>
+    <tbody>${lista.map(p=>{
+      const s = dados.socios.find(x=>x.id===p.socioId);
+      const tipo = p.tipo==='taxa' ? 'Taxa Inscrição' : 'Mensalidade';
+      return `<tr>
+        <td>${fmtData(p.data)}</td>
+        <td>${s?escapeHtml(s.nome):'—'}</td>
+        <td><span class="tag ${p.tipo==='taxa'?'dourada':'ativo'}">${tipo}</span></td>
+        <td>${escapeHtml(p.referencia||'')}</td>
+        <td>${fmtDinheiro(p.valor)}</td>
+        <td>${escapeHtml(p.forma||'')}</td>
+        <td>${escapeHtml(p.recebedor||'')}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn pequeno dourado" onclick="reciboPagamento('${p.id}')">Recibo</button>
+          <button class="btn pequeno perigo" onclick="excluirPagamento('${p.id}')">×</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+function modalPagamento(){
+  if(!exigir('registrarPagamentos')) return;
+  const socios = dados.socios.slice().sort((a,b)=>a.numero-b.numero);
+  abrirModal(`<h3>Registrar Mensalidade <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-pag">
+      <div class="campo"><label>Sócio *</label>
+        <select name="socioId" required>
+          <option value="">Selecione...</option>
+          ${socios.map(s=>`<option value="${s.id}">${escapeHtml(numeroSocio(s.numero))} - ${escapeHtml(s.nome)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Referência (AAAA-MM) *</label><input type="month" name="referencia" required value="${mesAtual()}"/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" name="valor" required value="${config.valorMensalidade}"/></div>
+        <div class="campo"><label>Valor em Aberto</label><input type="number" step="0.01" name="aberto" value="0"/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Forma de Pagamento</label>
+          <select name="forma">${['Dinheiro','PIX','Cartão','Transferência','Boleto','Cheque'].map(f=>`<option>${f}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Recebido por</label><input type="text" name="recebedor" value="${escapeHtml(usuarioAtual.nome)}"/></div>
+      </div>
+      <div class="campo"><label>Observação</label><input type="text" name="obs"/></div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-pag').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.id = gerarId(); o.tipo = 'mensalidade';
+    dados.pagamentos.push(o); salvar(); fecharModal();
+    renderPagamentos(); atualizarBadgeAlertas(); toast('Pagamento registrado!');
+  };
+}
+
+function modalTaxaInscricao(){
+  if(!exigir('registrarPagamentos')) return;
+  const socios = dados.socios.slice().sort((a,b)=>a.numero-b.numero);
+  abrirModal(`<h3>Taxa de Inscrição <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-taxa">
+      <div class="campo"><label>Sócio *</label>
+        <select name="socioId" required>
+          <option value="">Selecione...</option>
+          ${socios.map(s=>`<option value="${s.id}">${escapeHtml(numeroSocio(s.numero))} - ${escapeHtml(s.nome)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" name="valor" required value="${config.taxaInscricao}"/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Forma de Pagamento</label>
+          <select name="forma">${['Dinheiro','PIX','Cartão','Transferência','Boleto','Cheque'].map(f=>`<option>${f}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Recebido por</label><input type="text" name="recebedor" value="${escapeHtml(usuarioAtual.nome)}"/></div>
+      </div>
+      <div class="campo"><label>Observação</label><input type="text" name="obs" value="Taxa de inscrição / adesão à Associação"/></div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar & Gerar Recibo</button></div></form>`);
+  document.getElementById('f-taxa').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.id = gerarId(); o.tipo = 'taxa'; o.referencia = 'TAXA DE INSCRIÇÃO';
+    dados.pagamentos.push(o); salvar(); fecharModal();
+    renderPagamentos(); atualizarBadgeAlertas(); toast('Taxa registrada!');
+    reciboPagamento(o.id);
+  };
+}
+
+function excluirPagamento(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.pagamentos=dados.pagamentos.filter(x=>x.id!==id); salvar(); renderPagamentos(); atualizarBadgeAlertas(); }
+
+function reciboPagamento(id){
+  if(!exigir('gerarPDF')) return;
+  const p = dados.pagamentos.find(x=>x.id===id); if(!p) return;
+  const s = dados.socios.find(x=>x.id===p.socioId);
+  const isTaxa = p.tipo === 'taxa';
+  const titulo = isTaxa ? 'RECIBO DE TAXA DE INSCRIÇÃO' : 'RECIBO DE PAGAMENTO DE MENSALIDADE';
+  const cab = fichaCabecalho();
+  const dt = _dtParts(p.data);
+  const referenciaTxt = isTaxa
+    ? 'taxa de inscrição / adesão à Associação'
+    : 'mensalidade referente a <b>'+escapeHtml(p.referencia||'')+'</b>';
+  const nRecibo = String(p.id||'').replace(/\D/g,'').slice(-6).padStart(6,'0');
+
+  const html = `<div class="ficha-modelo">
+    ${cab.topo}
+    <div class="titulo-ficha">${titulo}</div>
+    <div class="n-cadastro">Recibo Nº: <span class="linh">${nRecibo}</span> &nbsp;&nbsp; Valor: <span class="linh">${fmtDinheiro(p.valor)}</span></div>
+
+    <div class="secao-titulo">DADOS DO SÓCIO</div>
+    <div class="campo"><span class="rot">Nome Completo:</span><span class="val">${_v(s?s.nome:'—')}</span></div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">Nº do Sócio:</span><span class="val">${_v(s?numeroSocio(s.numero):'')}</span></div>
+      <div class="campo"><span class="rot">CPF:</span><span class="val">${_v(s?s.cpf:'')}</span></div>
+      <div class="campo"><span class="rot">Telefone:</span><span class="val">${_v(s?s.telefone:'')}</span></div>
+    </div>
+    <div class="campo"><span class="rot">Endereço:</span><span class="val">${_v(s?((s.endereco||'')+(s.numeroEnd?', '+s.numeroEnd:'')+(s.bairro?' - '+s.bairro:'')+(s.municipio?' - '+s.municipio:'')+(s.uf?'/'+s.uf:'')):'')}</span></div>
+
+    <div class="secao-titulo">DECLARAÇÃO DE RECEBIMENTO</div>
+    <div class="termo">
+      A <b>${escapeHtml(config.nomeAssoc||'APRSM')} - ${escapeHtml(config.nomeCompleto||'')}</b> declara,
+      para os devidos fins, que recebeu de <b>${escapeHtml(s?s.nome:'—')}</b>, portador(a) do CPF nº
+      ${escapeHtml(s?s.cpf||'—':'—')}, sócio(a) ${escapeHtml(s?numeroSocio(s.numero):'')}, a importância
+      de <b>${fmtDinheiro(p.valor)}</b> (${valorPorExtenso(p.valor)}), a título de ${referenciaTxt},
+      pago(a) na forma de <b>${escapeHtml(p.forma||'—')}</b>, referente ao dia
+      ${dt.dia?dt.dia+'/'+dt.mes+'/'+dt.ano:fmtData(p.data)}.
+      ${p.obs?'<br/><br/><b>Observação:</b> '+escapeHtml(p.obs):''}
+      <br/><br/>Para maior clareza firmamos o presente recibo, dando plena, geral e irrevogável
+      quitação do valor recebido.
+    </div>
+
+    <div class="row c2" style="margin-top:8px;">
+      <div class="campo"><span class="rot">Data do Pagamento:</span><span class="val">${dt.dia?dt.dia+'/'+dt.mes+'/'+dt.ano:fmtData(p.data)}</span></div>
+      <div class="campo"><span class="rot">Forma:</span><span class="val">${_v(p.forma)}</span></div>
+    </div>
+
+    <div class="assin-linha" style="margin-top:40px;"><span class="linh">&nbsp;</span></div>
+    <div class="assin-legenda"><b>${escapeHtml(p.recebedor||'Responsável pelo recebimento')}</b><br/>${escapeHtml(config.nomeAssoc||'APRSM')} — Tesouraria</div>
+
+    <div class="assin-linha" style="margin-top:26px;"><span class="linh">&nbsp;</span></div>
+    <div class="assin-legenda"><b>${escapeHtml(s?s.nome:'—')}</b><br/>Sócio(a) ${escapeHtml(s?numeroSocio(s.numero):'')}</div>
+
+    ${cab.rodape}
+  </div>`;
+  imprimirHTML(html);
+}
+
+function valorPorExtenso(v){
+  // Extenso simplificado para valores em BRL
+  v = Number(v)||0;
+  const inteiros = Math.floor(v);
+  const cent = Math.round((v-inteiros)*100);
+  const centStr = cent>0 ? ' e '+cent+' centavo'+(cent===1?'':'s'):'';
+  return inteiros+' real'+(inteiros===1?'':'is')+centStr;
+}
+
+/* ============================================================
+   LIVRO CAIXA
+   ============================================================ */
+paginas.caixa = function(){
+  const mov = [];
+  dados.pagamentos.forEach(p=>{
+    const s = dados.socios.find(x=>x.id===p.socioId);
+    mov.push({data:p.data, tipo:'E', desc:'Mensalidade '+(p.referencia||'')+' - '+(s?s.nome:'—'), valor:Number(p.valor||0)});
+  });
+  dados.receitas.forEach(r=>mov.push({data:r.data, tipo:'E', desc:r.descricao, valor:Number(r.valor||0)}));
+  dados.despesas.forEach(d=>mov.push({data:d.data, tipo:'S', desc:d.descricao, valor:Number(d.valor||0)}));
+  mov.sort((a,b)=>a.data.localeCompare(b.data));
+  let saldo = 0;
+  const linhas = mov.map(m=>{
+    if(m.tipo==='E') saldo+=m.valor; else saldo-=m.valor;
+    return `<tr><td>${fmtData(m.data)}</td><td>${escapeHtml(m.desc)}</td>
+      <td>${m.tipo==='E'?fmtDinheiro(m.valor):'—'}</td>
+      <td>${m.tipo==='S'?fmtDinheiro(m.valor):'—'}</td>
+      <td><b>${fmtDinheiro(saldo)}</b></td></tr>`;
+  }).join('');
+  return `<div class="painel">
+    <h2><span class="icone-pagina">📒</span> Livro Caixa / Fluxo de Caixa
+      <div class="acoes"><button class="btn dourado" onclick="imprimirCaixa()">🖨️ Imprimir</button></div>
+    </h2>
+    <div class="tabela-wrap"><table class="dados">
+      <thead><tr><th>Data</th><th>Histórico</th><th>Entrada</th><th>Saída</th><th>Saldo</th></tr></thead>
+      <tbody>${linhas||'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--texto-suave)">Sem movimentações</td></tr>'}</tbody>
+      <tfoot><tr style="background:var(--verde-suave);font-weight:700"><td colspan="4">SALDO ATUAL</td><td>${fmtDinheiro(saldo)}</td></tr></tfoot>
+    </table></div>
+  </div>`;
+};
+
+function imprimirCaixa(){
+  if(!exigir('imprimir')) return;
+  const el = document.querySelector('.conteudo .tabela-wrap');
+  if(!el) return;
+  imprimirHTML(`<div class="doc-pdf">${headerFicha('LIVRO CAIXA - '+String(anoAtual()))}
+    ${el.outerHTML}${footerFicha()}</div>`);
+}
+
+/* ============================================================
+   FREQUÊNCIA
+   ============================================================ */
+paginas.frequencia = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">✅</span> Lista de Frequência
+      <div class="acoes">
+        <button class="btn" onclick="modalFrequencia('auto')">＋ Auto (Sócios)</button>
+        <button class="btn claro" onclick="modalFrequencia('manual')">＋ Manual</button>
+      </div>
+    </h2>
+    <div id="lista-freq"></div>
+  </div>`;
+};
+paginas.frequencia_init = ()=> renderFrequencias();
+function renderFrequencias(){
+  const el = document.getElementById('lista-freq');
+  if(dados.frequencias.length===0){ el.innerHTML='<div class="alerta-box info">Nenhuma frequência registrada.</div>'; return; }
+  const lista = dados.frequencias.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Data</th><th>Título</th><th>Modo</th><th>Presentes</th><th>Ausentes</th><th>%</th><th></th></tr></thead>
+    <tbody>${lista.map(f=>{
+      const pres = (f.presentes||[]).filter(p=>p.presente).length;
+      const total = (f.presentes||[]).length;
+      const pct = total?Math.round(pres/total*100):0;
+      return `<tr>
+        <td>${fmtData(f.data)}</td><td>${escapeHtml(f.titulo)}</td>
+        <td><span class="tag dourada">${f.modo==='auto'?'Automático':'Manual'}</span></td>
+        <td>${pres}</td><td>${total-pres}</td><td>${pct}%</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn pequeno" onclick="verFrequencia('${f.id}')">Ver</button>
+          <button class="btn pequeno dourado" onclick="imprimirFrequencia('${f.id}')">🖨️</button>
+          <button class="btn pequeno perigo" onclick="excluirFrequencia('${f.id}')">×</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+function modalFrequencia(modo, reuniaoId){
+  if(!exigir('cadastrarSocios')) return;
+  const socios = dados.socios.filter(s=>s.ativo!==false).sort((a,b)=>a.numero-b.numero);
+  const linhasAuto = socios.map(s=>`
+    <tr><td>${escapeHtml(numeroSocio(s.numero))}</td><td>${escapeHtml(s.nome)}</td>
+    <td style="text-align:center"><input type="checkbox" data-id="${s.id}" checked class="chk-presenca"/></td>
+    <td><input type="text" data-nota="${s.id}" placeholder="Assinatura/Obs" style="width:100%;padding:6px;border:1px solid var(--cinza-borda);border-radius:6px;"/></td></tr>`).join('');
+  abrirModal(`<h3>Nova Frequência (${modo==='auto'?'Automática':'Manual'}) <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-freq">
+      <div class="linha">
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Título *</label><input type="text" name="titulo" required placeholder="Reunião Ordinária, Evento..."/></div>
+        <div class="campo"><label>Local</label><input type="text" name="local" value="${escapeHtml(config.endereco)}"/></div>
+      </div>
+      ${modo==='auto'?`
+        <div class="ficha-secao">Sócios Ativos (${socios.length})</div>
+        <div class="tabela-wrap" style="max-height:340px;overflow:auto;">
+          <table class="dados"><thead><tr><th>Nº</th><th>Nome</th><th>Presente</th><th>Assinatura</th></tr></thead>
+          <tbody>${linhasAuto||'<tr><td colspan="4" style="text-align:center">Nenhum sócio ativo</td></tr>'}</tbody></table>
+        </div>`:`
+        <div class="ficha-secao">Participantes Manuais</div>
+        <div class="campo"><label>Digite um por linha (nome e assinatura opcional)</label>
+        <textarea name="manual" rows="8" placeholder="João da Silva&#10;Maria Pereira"></textarea></div>`}
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div>
+    </form>`, true);
+  document.getElementById('f-freq').onsubmit = e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    let presentes = [];
+    if(modo==='auto'){
+      document.querySelectorAll('.chk-presenca').forEach(c=>{
+        const s = dados.socios.find(x=>x.id===c.dataset.id);
+        const nota = document.querySelector(`[data-nota="${c.dataset.id}"]`).value;
+        presentes.push({socioId:s.id, nome:s.nome, numero:numeroSocio(s.numero), presente:c.checked, assinatura:nota});
+      });
+    }else{
+      const linhas = (fd.get('manual')||'').split(/\n/).map(x=>x.trim()).filter(Boolean);
+      presentes = linhas.map((n,i)=>({socioId:null, nome:n, numero:'—', presente:true, assinatura:''}));
+    }
+    const f = {id:gerarId(), data:fd.get('data'), titulo:fd.get('titulo'), local:fd.get('local'), modo, presentes, reuniaoId};
+    dados.frequencias.push(f); salvar(); fecharModal(); renderFrequencias(); toast('Frequência registrada!');
+  };
+}
+
+function verFrequencia(id){
+  const f = dados.frequencias.find(x=>x.id===id); if(!f) return;
+  const pres = (f.presentes||[]).filter(p=>p.presente).length;
+  const total = (f.presentes||[]).length;
+  abrirModal(`<h3>${escapeHtml(f.titulo)} — ${fmtData(f.data)} <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <p><b>Local:</b> ${escapeHtml(f.local||'—')} • <b>Presentes:</b> ${pres}/${total} (${total?Math.round(pres/total*100):0}%)</p>
+    <div class="tabela-wrap" style="max-height:400px;overflow:auto;">
+      <table class="dados"><thead><tr><th>Nº</th><th>Nome</th><th>Presente</th><th>Assinatura</th></tr></thead>
+      <tbody>${f.presentes.map(p=>`<tr><td>${escapeHtml(p.numero)}</td><td>${escapeHtml(p.nome)}</td>
+      <td>${p.presente?'<span class="tag ativo">Sim</span>':'<span class="tag inativo">Não</span>'}</td>
+      <td>${escapeHtml(p.assinatura||'')}</td></tr>`).join('')}</tbody></table>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn contorno" onclick="fecharModal()">Fechar</button>
+      <button class="btn dourado" onclick="imprimirFrequencia('${f.id}')">🖨️ Imprimir</button>
+    </div>`, true);
+}
+function excluirFrequencia(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.frequencias=dados.frequencias.filter(x=>x.id!==id); salvar(); renderFrequencias(); }
+
+function imprimirFrequencia(id){
+  if(!exigir('imprimir')) return;
+  const f = dados.frequencias.find(x=>x.id===id); if(!f) return;
+  const pres = (f.presentes||[]).filter(p=>p.presente).length;
+  const total = (f.presentes||[]).length;
+  const pct = total?Math.round(pres/total*100):0;
+  const linhas = f.presentes.map((p,i)=>`
+    <tr><td style="text-align:center">${i+1}</td><td>${escapeHtml(p.numero)}</td><td>${escapeHtml(p.nome)}</td>
+    <td style="text-align:center">${p.presente?'✓':'—'}</td>
+    <td style="border-bottom:1px solid #333;height:26px;">${escapeHtml(p.assinatura||'')}</td></tr>`).join('');
+  const html = `<div class="lista-frequencia">${headerFicha('LISTA DE FREQUÊNCIA')}
+    <p><b>Título:</b> ${escapeHtml(f.titulo)} &nbsp; <b>Data:</b> ${fmtData(f.data)} &nbsp; <b>Local:</b> ${escapeHtml(f.local||'—')}</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;">
+      <thead><tr style="background:#1b5e20;color:#fff;">
+        <th style="padding:6px;">#</th><th style="padding:6px;">Nº Sócio</th><th style="padding:6px;">Nome</th>
+        <th style="padding:6px;">Pres.</th><th style="padding:6px;">Assinatura</th></tr></thead>
+      <tbody>${linhas||'<tr><td colspan="5" style="text-align:center">Sem participantes</td></tr>'}</tbody>
+    </table>
+    <p style="margin-top:14px;background:#e8f5e9;padding:8px;border-radius:6px;">
+      <b>Total de presentes:</b> ${pres} &nbsp; <b>Ausentes:</b> ${total-pres} &nbsp; <b>Participação:</b> ${pct}%
+    </p>
+    ${footerFicha()}</div>`;
+  imprimirHTML(html);
+}
+
+/* ============================================================
+   REUNIÕES
+   ============================================================ */
+paginas.reunioes = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">📅</span> Reuniões / Eventos
+      <div class="acoes"><button class="btn" onclick="modalReuniao()">＋ Nova</button></div>
+    </h2>
+    <div id="lista-reun"></div>
+  </div>`;
+};
+paginas.reunioes_init = ()=> renderReunioes();
+function renderReunioes(){
+  const el = document.getElementById('lista-reun');
+  if(dados.reunioes.length===0){ el.innerHTML='<div class="alerta-box info">Nenhuma reunião cadastrada.</div>'; return; }
+  const lista = dados.reunioes.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Local</th><th></th></tr></thead>
+    <tbody>${lista.map(r=>`<tr>
+      <td>${fmtData(r.data)}${r.hora?' '+r.hora:''}</td>
+      <td>${escapeHtml(r.titulo)}</td>
+      <td><span class="tag dourada">${escapeHtml(r.tipo)}</span></td>
+      <td>${escapeHtml(r.local||'')}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn pequeno" onclick="modalFrequencia('auto','${r.id}')">Frequência</button>
+        <button class="btn pequeno claro" onclick="modalAta(null,'${r.id}')">Ata</button>
+        <button class="btn pequeno perigo" onclick="excluirReuniao('${r.id}')">×</button>
+      </td></tr>`).join('')}</tbody></table></div>`;
+}
+function modalReuniao(){
+  if(!exigir('registrarAtas')) return;
+  const tipos = ['Reunião Ordinária','Reunião Extraordinária','Assembleia','Evento','Curso','Capacitação'];
+  abrirModal(`<h3>Nova Reunião <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-reun">
+      <div class="campo"><label>Título *</label><input type="text" name="titulo" required/></div>
+      <div class="linha">
+        <div class="campo"><label>Tipo</label>
+          <select name="tipo">${tipos.map(t=>`<option>${t}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Data *</label><input type="date" name="data" required value="${hoje()}"/></div>
+        <div class="campo"><label>Hora</label><input type="time" name="hora" value="19:00"/></div>
+      </div>
+      <div class="campo"><label>Local</label><input type="text" name="local" value="${escapeHtml(config.endereco)}"/></div>
+      <div class="campo"><label>Pauta</label><textarea name="pauta" rows="3"></textarea></div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-reun').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.id = gerarId(); dados.reunioes.push(o); salvar(); fecharModal(); renderReunioes(); toast('Reunião registrada!');
+  };
+}
+function excluirReuniao(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.reunioes=dados.reunioes.filter(x=>x.id!==id); salvar(); renderReunioes(); }
+
+/* ============================================================
+   ATAS
+   ============================================================ */
+paginas.atas = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">📝</span> Atas de Reunião
+      <div class="acoes"><button class="btn" onclick="modalAta()">＋ Nova Ata</button></div>
+    </h2>
+    <div class="busca-topo"><input type="text" id="busca-ata" placeholder="Buscar por número, local, assunto..." oninput="renderAtas()"/></div>
+    <div id="lista-atas"></div>
+  </div>`;
+};
+paginas.atas_init = ()=> renderAtas();
+function renderAtas(){
+  const q = (document.getElementById('busca-ata')?.value||'').toLowerCase();
+  let lista = dados.atas.slice().sort((a,b)=>b.numero-a.numero);
+  if(q) lista = lista.filter(a=> String(a.numero).includes(q) || (a.local||'').toLowerCase().includes(q) || (a.assuntos||'').toLowerCase().includes(q));
+  const el = document.getElementById('lista-atas');
+  if(lista.length===0){ el.innerHTML='<div class="alerta-box info">Nenhuma ata.</div>'; return; }
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Nº</th><th>Data</th><th>Local</th><th>Título</th><th></th></tr></thead>
+    <tbody>${lista.map(a=>`<tr>
+      <td><b>${a.numero}</b></td><td>${fmtData(a.data)}</td>
+      <td>${escapeHtml(a.local||'')}</td><td>${escapeHtml(a.titulo||'')}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn pequeno claro" onclick="modalAta('${a.id}')">Editar</button>
+        <button class="btn pequeno dourado" onclick="imprimirAta('${a.id}')">🖨️</button>
+        <button class="btn pequeno perigo" onclick="excluirAta('${a.id}')">×</button>
+      </td></tr>`).join('')}</tbody></table></div>`;
+}
+function modalAta(id, reuniaoId){
+  if(!exigir('registrarAtas')) return;
+  const a = id ? dados.atas.find(x=>x.id===id) : {numero: dados.proxNumAta, data:hoje(), titulo:'', texto:''};
+  const r = reuniaoId ? dados.reunioes.find(x=>x.id===reuniaoId) : null;
+  if(r && !a.id){ a.titulo = r.titulo; a.data = r.data; }
+  abrirModal(`<h3>${id?'Editar':'Nova'} Ata Nº ${a.numero} <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-ata">
+      <div class="linha">
+        <div class="campo"><label>Título da Ata *</label><input type="text" name="titulo" required value="${escapeHtml(a.titulo||'')}"/></div>
+        <div class="campo"><label>Data da Reunião *</label><input type="date" name="data" required value="${a.data||hoje()}"/></div>
+      </div>
+      <div class="campo"><label>Texto da Ata *</label>
+        <textarea name="texto" rows="16" required placeholder="Digite aqui o texto completo da ata...">${escapeHtml(a.texto||'')}</textarea>
+      </div>
+      <div class="modal-acoes">
+        <button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+        <button type="button" class="btn dourado" onclick="salvarESaidaAtaPDF('${id||''}')">💾 Salvar em PDF</button>
+        <button class="btn">💾 Salvar</button>
+      </div>
+    </form>`, true);
+  document.getElementById('f-ata').onsubmit = e=>{
+    e.preventDefault();
+    salvarAtaForm(id);
+  };
+}
+function salvarAtaForm(id){
+  const form = document.getElementById('f-ata'); if(!form) return null;
+  const o = Object.fromEntries(new FormData(form).entries());
+  if(!o.titulo || !o.data || !o.texto){ toast('Preencha título, data e texto.','erro'); return null; }
+  let atual;
+  if(id){
+    atual = dados.atas.find(x=>x.id===id);
+    if(atual){ Object.assign(atual, o);
+      atual.atualizadoPor = usuarioAtual.nome; atual.atualizadoEm = new Date().toISOString();
+      toast('Ata atualizada!'); }
+  }else{
+    o.id = gerarId(); o.numero = dados.proxNumAta; dados.proxNumAta++;
+    o.criadoPor = usuarioAtual.nome; o.criadoCargo = usuarioAtual.cargo||'';
+    o.criadoEm  = new Date().toISOString();
+    dados.atas.push(o); atual = o;
+    toast('Ata cadastrada!');
+  }
+  salvar(); renderAtas(); return atual;
+}
+function salvarESaidaAtaPDF(id){
+  const a = salvarAtaForm(id || null); if(!a) return;
+  fecharModal();
+  imprimirAta(a.id);
+}
+function excluirAta(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.atas=dados.atas.filter(x=>x.id!==id); salvar(); renderAtas(); }
+
+function imprimirAta(id){
+  if(!exigir('imprimir')) return;
+  const a = dados.atas.find(x=>x.id===id); if(!a) return;
+  const logo = config.logo ? `<img src="${escapeHtml(config.logo)}" style="height:70px;"/>` : '';
+  const html = `<div style="font-family:'Georgia','Times New Roman',serif;color:#111;padding:30px 32px;">
+    <div style="text-align:center;border-bottom:2px solid #1b5e20;padding-bottom:12px;margin-bottom:22px;">
+      ${logo ? `<div style="margin-bottom:6px;">${logo}</div>` : ''}
+      <div style="font-size:16pt;font-weight:800;color:#1b5e20;letter-spacing:.5px;">${escapeHtml((config.nomeCompleto||config.nomeAssoc||'Associação').toUpperCase())}</div>
+      ${config.nomeCompleto && config.nomeAssoc && config.nomeCompleto!==config.nomeAssoc ? `<div style="font-size:10pt;color:#555;">${escapeHtml(config.nomeAssoc)}</div>` : ''}
+      ${config.endereco ? `<div style="font-size:9.5pt;color:#555;margin-top:2px;">${escapeHtml(config.endereco)}</div>` : ''}
+    </div>
+
+    <div style="text-align:center;font-size:14pt;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Ata Nº ${a.numero} — ${escapeHtml(a.titulo||'')}</div>
+    <div style="text-align:center;font-size:10.5pt;color:#333;margin-bottom:22px;">Data da Reunião: <b>${fmtData(a.data)}</b></div>
+
+    <div style="font-size:12pt;line-height:1.7;text-align:justify;white-space:pre-wrap;text-indent:2em;">${escapeHtml(a.texto||'')}</div>
+
+    <div style="margin-top:70px;display:flex;justify-content:space-around;gap:40px;font-size:10.5pt;">
+      <div style="text-align:center;flex:1;">
+        <div style="border-top:1.5px solid #111;padding-top:6px;">Presidente da Associação</div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="border-top:1.5px solid #111;padding-top:6px;">Secretário(a) da Associação</div>
+      </div>
+    </div>
+
+    <div style="margin-top:34px;font-size:8.5pt;color:#666;text-align:center;border-top:1px solid #ccc;padding-top:6px;">
+      ${escapeHtml(config.nomeCompleto||config.nomeAssoc||'')} • Documento gerado eletronicamente em ${fmtDataHora(new Date().toISOString())}
+    </div>
+  </div>`;
+  imprimirHTML(html);
+}
+
+/* ============================================================
+   PATRIMÔNIO
+   ============================================================ */
+paginas.patrimonio = function(){
+  const total = dados.patrimonio.reduce((a,p)=>a+Number(p.valorUnit||0)*Number(p.qtd||1),0);
+  return `<div class="painel">
+    <h2><span class="icone-pagina">🏛️</span> Patrimônio - Total: ${fmtDinheiro(total)}
+      <div class="acoes">
+        <button class="btn" onclick="modalPatrimonio()">＋ Novo Bem</button>
+        <button class="btn dourado" onclick="imprimirPatrimonio()">🖨️ Imprimir</button>
+      </div>
+    </h2>
+    <div id="lista-patr"></div>
+  </div>`;
+};
+paginas.patrimonio_init = ()=> renderPatrimonio();
+function renderPatrimonio(){
+  const el = document.getElementById('lista-patr');
+  if(dados.patrimonio.length===0){ el.innerHTML='<div class="alerta-box info">Sem bens cadastrados.</div>'; return; }
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Categoria</th><th>Descrição</th><th>Qtd</th><th>Vlr Unit.</th><th>Total</th><th>Aquisição</th><th>Situação</th><th></th></tr></thead>
+    <tbody>${dados.patrimonio.map(p=>`<tr>
+      <td>${escapeHtml(p.categoria)}</td><td>${escapeHtml(p.descricao)}</td>
+      <td>${p.qtd}</td><td>${fmtDinheiro(p.valorUnit)}</td>
+      <td>${fmtDinheiro(Number(p.valorUnit||0)*Number(p.qtd||1))}</td>
+      <td>${fmtData(p.dataAquisicao)}</td>
+      <td><span class="tag ${p.situacao==='Bom'?'ativo':'dourada'}">${escapeHtml(p.situacao||'')}</span></td>
+      <td style="text-align:right"><button class="btn pequeno claro" onclick="modalPatrimonio('${p.id}')">Editar</button>
+      <button class="btn pequeno perigo" onclick="excluirPatrimonio('${p.id}')">×</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function modalPatrimonio(id){
+  if(!exigir('alterarDados')) return;
+  const cats = ['Máquinas','Equipamentos','Ferramentas','Veículos','Animais','Móveis','Outros'];
+  const sits = ['Novo','Bom','Regular','Ruim','Inservível'];
+  const p = id ? dados.patrimonio.find(x=>x.id===id) : {qtd:1,valorUnit:0,dataAquisicao:hoje(),situacao:'Bom'};
+  abrirModal(`<h3>${id?'Editar':'Novo'} Bem <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-patr">
+      <div class="campo"><label>Descrição *</label><input type="text" name="descricao" required value="${escapeHtml(p.descricao||'')}"/></div>
+      <div class="linha">
+        <div class="campo"><label>Categoria</label>
+          <select name="categoria">${cats.map(c=>`<option ${p.categoria===c?'selected':''}>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Situação</label>
+          <select name="situacao">${sits.map(c=>`<option ${p.situacao===c?'selected':''}>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Data Aquisição</label><input type="date" name="dataAquisicao" value="${p.dataAquisicao||hoje()}"/></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label>Quantidade</label><input type="number" name="qtd" min="1" value="${p.qtd||1}"/></div>
+        <div class="campo"><label>Valor Unitário (R$)</label><input type="number" step="0.01" name="valorUnit" value="${p.valorUnit||0}"/></div>
+      </div>
+      <div class="campo"><label>Observações</label><textarea name="obs" rows="2">${escapeHtml(p.obs||'')}</textarea></div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-patr').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    if(id){ Object.assign(p, o); toast('Bem atualizado!'); }
+    else { o.id=gerarId(); dados.patrimonio.push(o); toast('Bem cadastrado!'); }
+    salvar(); fecharModal(); renderPatrimonio();
+  };
+}
+function excluirPatrimonio(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.patrimonio=dados.patrimonio.filter(x=>x.id!==id); salvar(); renderPatrimonio(); }
+function imprimirPatrimonio(){
+  if(!exigir('imprimir')) return;
+  const total = dados.patrimonio.reduce((a,p)=>a+Number(p.valorUnit||0)*Number(p.qtd||1),0);
+  const linhas = dados.patrimonio.map(p=>`<tr>
+    <td>${escapeHtml(p.categoria)}</td><td>${escapeHtml(p.descricao)}</td>
+    <td>${p.qtd}</td><td>${fmtDinheiro(p.valorUnit)}</td>
+    <td>${fmtDinheiro(Number(p.valorUnit)*Number(p.qtd))}</td>
+    <td>${fmtData(p.dataAquisicao)}</td><td>${escapeHtml(p.situacao||'')}</td></tr>`).join('');
+  imprimirHTML(`<div class="doc-pdf">${headerFicha('RELAÇÃO DE PATRIMÔNIO')}
+    <table style="width:100%;border-collapse:collapse;font-size:12px;" border="1" cellpadding="6">
+      <thead style="background:#1b5e20;color:#fff;"><tr><th>Cat.</th><th>Descrição</th><th>Qtd</th><th>Unit.</th><th>Total</th><th>Aquisição</th><th>Situação</th></tr></thead>
+      <tbody>${linhas}</tbody>
+      <tfoot><tr style="background:#e8f5e9;font-weight:700;"><td colspan="4">TOTAL GERAL</td><td colspan="3">${fmtDinheiro(total)}</td></tr></tfoot>
+    </table>${footerFicha()}</div>`);
+}
+
+/* ============================================================
+   DOCUMENTOS
+   ============================================================ */
+paginas.documentos = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">📁</span> Central de Documentos
+      <div class="acoes"><button class="btn" onclick="modalDocumento()">＋ Novo Documento</button></div>
+    </h2>
+    <div class="busca-topo">
+      <input type="text" id="busca-doc" placeholder="Buscar..." oninput="renderDocs()"/>
+      <select id="filtro-cat-doc" onchange="renderDocs()">
+        <option value="">Todas categorias</option>
+        ${['Estatuto Social','Ata','Contrato','Declaração','Ofício','Projeto','Edital','Comprovante','Outros'].map(c=>`<option>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div id="lista-docs"></div>
+  </div>`;
+};
+paginas.documentos_init = ()=> renderDocs();
+function renderDocs(){
+  const q = (document.getElementById('busca-doc')?.value||'').toLowerCase();
+  const c = document.getElementById('filtro-cat-doc')?.value||'';
+  let lista = dados.documentos.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(q) lista=lista.filter(d=>(d.nome||'').toLowerCase().includes(q) || (d.responsavel||'').toLowerCase().includes(q));
+  if(c) lista=lista.filter(d=>d.categoria===c);
+  const el = document.getElementById('lista-docs');
+  if(lista.length===0){ el.innerHTML='<div class="alerta-box info">Nenhum documento.</div>'; return; }
+  el.innerHTML = `<div class="tabela-wrap"><table class="dados">
+    <thead><tr><th>Nome</th><th>Categoria</th><th>Data</th><th>Responsável</th><th></th></tr></thead>
+    <tbody>${lista.map(d=>`<tr>
+      <td>${escapeHtml(d.nome)}</td>
+      <td><span class="tag dourada">${escapeHtml(d.categoria||'')}</span></td>
+      <td>${fmtData(d.data)}</td><td>${escapeHtml(d.responsavel||'')}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        ${d.arquivo?`<a class="btn pequeno" href="${d.arquivo}" download="${escapeHtml(d.nome)}">Baixar</a>`:''}
+        <button class="btn pequeno claro" onclick="modalDocumento('${d.id}')">Editar</button>
+        <button class="btn pequeno perigo" onclick="excluirDocumento('${d.id}')">×</button>
+      </td></tr>`).join('')}</tbody></table></div>`;
+}
+function modalDocumento(id){
+  if(!exigir('alterarDados')) return;
+  const d = id ? dados.documentos.find(x=>x.id===id) : {data:hoje(), categoria:'Outros'};
+  window._arquivoTemp = d.arquivo || '';
+  abrirModal(`<h3>${id?'Editar':'Novo'} Documento <button class="fechar" onclick="fecharModal()">×</button></h3>
+    <form id="f-doc">
+      <div class="campo"><label>Nome *</label><input type="text" name="nome" required value="${escapeHtml(d.nome||'')}"/></div>
+      <div class="linha">
+        <div class="campo"><label>Categoria</label>
+          <select name="categoria">${['Estatuto Social','Ata','Contrato','Declaração','Ofício','Projeto','Edital','Comprovante','Outros'].map(c=>`<option ${d.categoria===c?'selected':''}>${c}</option>`).join('')}</select>
+        </div>
+        <div class="campo"><label>Data</label><input type="date" name="data" value="${d.data||hoje()}"/></div>
+        <div class="campo"><label>Responsável</label><input type="text" name="responsavel" value="${escapeHtml(d.responsavel||usuarioAtual.nome)}"/></div>
+      </div>
+      <div class="campo"><label>Descrição</label><textarea name="descricao" rows="3">${escapeHtml(d.descricao||'')}</textarea></div>
+      <div class="campo"><label>Arquivo (opcional)</label><input type="file" id="arquivo-input" onchange="carregarArquivoDoc(event)"/></div>
+      <div class="modal-acoes"><button type="button" class="btn contorno" onclick="fecharModal()">Cancelar</button>
+      <button class="btn">💾 Salvar</button></div></form>`);
+  document.getElementById('f-doc').onsubmit = e=>{
+    e.preventDefault();
+    const o = Object.fromEntries(new FormData(e.target).entries());
+    o.arquivo = window._arquivoTemp || d.arquivo || '';
+    if(id){ Object.assign(d, o); toast('Documento atualizado!'); }
+    else { o.id=gerarId(); dados.documentos.push(o); toast('Documento cadastrado!'); }
+    salvar(); fecharModal(); renderDocs();
+  };
+}
+function carregarArquivoDoc(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ev=>{ window._arquivoTemp = ev.target.result; toast('Arquivo carregado!'); };
+  r.readAsDataURL(f);
+}
+function excluirDocumento(id){ if(!exigir('excluir'))return; if(!confirmar('Excluir?'))return; dados.documentos=dados.documentos.filter(x=>x.id!==id); salvar(); renderDocs(); }
+
+/* ============================================================
+   CONFIGURAÇÕES
+   ============================================================ */
+paginas.config = function(){
+  if(!pode('alterarConfig')) return `<div class="painel"><div class="alerta-box atraso">Sem permissão.</div></div>`;
+  return `<div class="painel">
+    <h2><span class="icone-pagina">⚙️</span> Configurações da Associação</h2>
+    <form id="f-config">
+      <div class="ficha-secao">Identidade</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
+        <div class="foto-socio" onclick="document.getElementById('logo-input').click()" id="logo-preview" style="border-radius:50%;">
+          ${config.logo?`<img src="${config.logo}"/>`:'<span>Clique para adicionar logo</span>'}
+        </div>
+        <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="carregarLogo(event)"/>
+        <div style="flex:1;min-width:220px;">
+          <div class="campo"><label>Nome curto (sigla)</label><input type="text" name="nomeAssoc" value="${escapeHtml(config.nomeAssoc)}"/></div>
+          <div class="campo"><label>Nome completo</label><input type="text" name="nomeCompleto" value="${escapeHtml(config.nomeCompleto)}"/></div>
+          <div class="campo"><label>CNPJ</label><input type="text" name="cnpj" value="${escapeHtml(config.cnpj)}"/></div>
+        </div>
+      </div>
+
+      <div class="ficha-secao">Contato</div>
+      <div class="linha">
+        <div class="campo"><label>Telefone</label><input type="text" name="telefone" value="${escapeHtml(config.telefone)}"/></div>
+        <div class="campo"><label>E-mail</label><input type="email" name="email" value="${escapeHtml(config.email)}"/></div>
+        <div class="campo"><label>Endereço</label><input type="text" name="endereco" value="${escapeHtml(config.endereco)}"/></div>
+      </div>
+
+      <div class="ficha-secao">Financeiro</div>
+      <div class="linha">
+        <div class="campo"><label>Valor Mensalidade (R$)</label><input type="number" step="0.01" name="valorMensalidade" value="${config.valorMensalidade}"/></div>
+        <div class="campo"><label>Taxa Inscrição (R$)</label><input type="number" step="0.01" name="taxaInscricao" value="${config.taxaInscricao}"/></div>
+        <div class="campo"><label>Dia Vencimento</label><input type="number" min="1" max="28" name="diaVencimento" value="${config.diaVencimento}"/></div>
+      </div>
+
+      <div class="ficha-secao">Meu Acesso (${escapeHtml(usuarioAtual.usuario)})</div>
+      <div class="linha">
+        <div class="campo"><label>Novo Usuário</label><input type="text" id="meu-usuario" value="${escapeHtml(usuarioAtual.usuario)}"/></div>
+        <div class="campo"><label>Nova Senha</label><input type="password" id="meu-senha" value="" placeholder="(deixe em branco para manter)" autocomplete="new-password"/></div>
+      </div>
+
+      <div class="modal-acoes"><button class="btn">💾 Salvar Configurações</button></div>
+    </form>
+  </div>`;
+};
+paginas.config_init = ()=>{
+  document.getElementById('f-config').onsubmit = e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    Object.assign(config, Object.fromEntries(fd.entries()));
+    config.valorMensalidade = Number(config.valorMensalidade)||0;
+    config.taxaInscricao = Number(config.taxaInscricao)||0;
+    config.diaVencimento = Number(config.diaVencimento)||10;
+    if(window._logoTemp) config.logo = window._logoTemp;
+    const nu = document.getElementById('meu-usuario').value.trim();
+    const ns = document.getElementById('meu-senha').value;
+    if(nu) usuarioAtual.usuario = nu;
+    if(ns) definirSenha(usuarioAtual, ns);
+    salvar(); aplicarConfigVisual(); toast('Configurações salvas!');
+  };
+};
+function carregarLogo(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{ window._logoTemp = ev.target.result;
+    document.getElementById('logo-preview').innerHTML = '<img src="'+ev.target.result+'"/>'; };
+  r.readAsDataURL(f);
+}
+
+/* ============================================================
+   BACKUP
+   ============================================================ */
+paginas.backup = function(){
+  return `<div class="painel">
+    <h2><span class="icone-pagina">💾</span> Backup & Restauração</h2>
+    <div class="alerta-box info">O backup salva TODAS as informações do sistema (sócios, financeiro, atas, configurações...).</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+      <button class="btn" onclick="fazerBackup()">📥 Fazer Backup (Download)</button>
+      <button class="btn dourado" onclick="document.getElementById('restore-input').click()">📤 Restaurar Backup</button>
+      <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restaurarBackup(event)"/>
+      <button class="btn contorno" onclick="exportarCSV('socios')">Exportar Sócios (CSV)</button>
+      <button class="btn contorno" onclick="exportarCSV('pagamentos')">Exportar Pagamentos (CSV)</button>
+      <button class="btn dourado" onclick="baixarCodigoSistema()">🧾 Baixar Sistema Completo (index.html)</button>
+      <button class="btn perigo" onclick="apagarTudo()">⚠️ Apagar Todos os Dados</button>
+    </div>
+    <div class="alerta-box aviso" style="margin-top:14px;">
+      Guarde o arquivo <b>.json</b> em local seguro (pendrive, e-mail, nuvem).<br/>
+      Por segurança, <b>as senhas dos usuários não são incluídas no backup</b>. Ao restaurar, as senhas
+      atuais deste computador são mantidas; usuários sem senha deverão defini-la novamente.
+    </div>
+  </div>`;
+};
+async function baixarCodigoSistema(){
+  if(!ehAdmin()){
+    toast('Somente o Administrador pode baixar o código do sistema.','erro');
+    return;
+  }
+  try{
+    let codigo = '';
+    if(location.protocol==='http:' || location.protocol==='https:'){
+      const resposta = await fetch(location.href, {cache:'no-store'});
+      if(!resposta.ok) throw new Error('Não foi possível ler o arquivo do sistema.');
+      codigo = await resposta.text();
+    }else{
+      codigo = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    }
+    const blob = new Blob([codigo], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    toast('Arquivo index.html gerado com sucesso!');
+  }catch(err){
+    toast('Erro ao gerar o index.html: '+err.message,'erro');
+  }
+}
+function fazerBackup(){
+  if(!exigir('backup')) return;
+  // Exporta tudo, exceto credenciais (senhas/hashes nunca saem do sistema)
+  const dadosExport = Object.assign({}, dados, { usuarios: semCredenciais(dados.usuarios) });
+  const obj = {dados: dadosExport, config, versao:2, semSenhas:true, exportadoEm:new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(obj,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'backup_aprsm_'+hoje()+'.json';
+  a.click();
+  toast('Backup gerado (sem senhas)!');
+}
+function restaurarBackup(e){
+  if(!exigir('restaurar')) return;
+  const f = e.target.files[0]; if(!f) return;
+  if(!confirmar('Restaurar irá substituir TODOS os dados atuais. Confirma?')){ e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = ev=>{
+    try{
+      const obj = JSON.parse(ev.target.result);
+      if(!obj.dados || !obj.config) throw new Error('Arquivo inválido');
+      // Preserva as credenciais locais; o arquivo de backup não contém senhas.
+      const credenciais = {};
+      (dados.usuarios||[]).forEach(u=>{
+        if(u.senhaHash) credenciais[u.usuario] = { senhaHash:u.senhaHash, sal:u.sal, iter:u.iter };
+      });
+      dados = obj.dados; config = obj.config;
+      (dados.usuarios||[]).forEach(u=>{
+        delete u.senha; delete u.senhaHash; delete u.sal; delete u.iter;
+        const c = credenciais[u.usuario];
+        if(c) Object.assign(u, c);
+      });
+      salvar(); aplicarConfigVisual();
+      usuarioAtual = (dados.usuarios||[]).find(x=>x.usuario===usuarioAtual.usuario) || usuarioAtual;
+      toast('Backup restaurado com sucesso!'); mostrarPagina('dashboard');
+    }catch(err){ toast('Erro ao restaurar: '+err.message,'erro'); }
+  };
+  r.readAsText(f);
+}
+function exportarCSV(tipo){
+  let linhas = [];
+  if(tipo==='socios'){
+    linhas.push(['Numero','Nome','CPF','Telefone','Email','Endereco','Municipio','Status'].join(';'));
+    dados.socios.forEach(s=>linhas.push([numeroSocio(s.numero),s.nome,s.cpf||'',s.telefone||'',s.email||'',s.endereco||'',s.municipio||'',s.ativo!==false?'Ativo':'Inativo'].map(x=>`"${(x+'').replace(/"/g,'""')}"`).join(';')));
+  }else{
+    linhas.push(['Data','Socio','Referencia','Valor','Forma','Recebedor'].join(';'));
+    dados.pagamentos.forEach(p=>{ const s=dados.socios.find(x=>x.id===p.socioId);
+      linhas.push([fmtData(p.data),s?s.nome:'',p.referencia||'',p.valor,p.forma||'',p.recebedor||''].map(x=>`"${(x+'').replace(/"/g,'""')}"`).join(';'));});
+  }
+  const blob = new Blob(['\ufeff'+linhas.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=tipo+'_'+hoje()+'.csv'; a.click();
+  toast('CSV exportado!');
+}
+function apagarTudo(){
+  if(!exigir('excluir')) return;
+  if(!confirmar('APAGAR TUDO? Esta ação não pode ser desfeita.')) return;
+  if(!confirmar('Tem certeza absoluta?')) return;
+  dados=dadosIniciais(); dados.usuarios=[]; config=configIniciais();
+  salvar(); aplicarConfigVisual(); mostrarPagina('dashboard');
+  toast('Todos os dados foram apagados.','aviso');
+}
+
+/* ============================================================
+   IMPRESSÃO / PDF
+   ============================================================ */
+function headerFicha(titulo){
+  const logo = config.logo
+    ? `<img src="${config.logo}" alt="Logo"/>`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1b5e20;font-weight:800;font-size:24px;">A</div>`;
+  return `<div class="ficha-header">
+    <div class="logo">${logo}</div>
+    <div class="info">
+      <h2>${escapeHtml(config.nomeAssoc)}</h2>
+      <p>${escapeHtml(config.nomeCompleto)}</p>
+      <p>${escapeHtml(config.endereco)} • Tel: ${escapeHtml(config.telefone)} • ${escapeHtml(config.email)}</p>
+    </div>
+  </div>
+  <div class="ficha-titulo">${escapeHtml(titulo)}</div>`;
+}
+function footerFicha(){
+  return `<div class="ficha-rodape">
+    ${escapeHtml(config.nomeCompleto)} — Documento gerado pelo Sistema APRSM em ${fmtDataHora(new Date().toISOString())}
+    <br/>${escapeHtml(config.endereco)} • ${escapeHtml(config.telefone)} • ${escapeHtml(config.email)}
+  </div>`;
+}
+function imprimirHTML(html){
+  const area = document.getElementById('area-impressao');
+  area.innerHTML = html;
+  document.body.classList.add('imprimindo');
+  const limpar = ()=>{
+    document.body.classList.remove('imprimindo');
+    window.removeEventListener('afterprint', limpar);
+  };
+  window.addEventListener('afterprint', limpar);
+  setTimeout(()=>{ if(document.body.classList.contains('imprimindo')) document.body.classList.remove('imprimindo'); }, 60000);
+  setTimeout(()=>{ try{ window.print(); }catch(e){ limpar(); alert('Não foi possível abrir a impressão: '+e.message); } }, 200);
+}
+
+function fichaCabecalho(){
+  const logo = config.logo ? `<img src="${config.logo}" alt="APRSM"/>` : `<span>A</span>`;
+  const miniLogo = config.logo ? `<img src="${config.logo}" alt=""/>` : `<div style="width:100%;height:100%;background:#0b4d1f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">A</div>`;
+  return {
+    topo: `<div class="topo-barra"></div>
+      <div class="cabecalho">
+        <div class="brasao">${logo}</div>
+        <div class="marca">
+          <h1>APRSM</h1>
+          <div class="sub">ASSOCIAÇÃO DOS PRODUTORES RURAIS<br/>DA COMUNIDADE SÃO MARTINS</div>
+          <hr/>
+          <div class="lema">UNIDOS PELO CAMPO, FORTES PELA COMUNIDADE.</div>
+        </div>
+        <div class="valores">
+          <div class="item"><div class="bola">🤝</div><div class="txt">FORTALECENDO PARCERIAS,<br/>GERANDO OPORTUNIDADES.</div></div>
+          <div class="item"><div class="bola">🌾</div><div class="txt">VALORIZANDO O PRODUTOR,<br/>CULTIVANDO O FUTURO.</div></div>
+          <div class="item"><div class="bola">🌱</div><div class="txt">SUSTENTABILIDADE, TRABALHO<br/>E DESENVOLVIMENTO RURAL.</div></div>
+          <div class="item"><div class="bola">👥</div><div class="txt">UNIDOS PELO CAMPO,<br/>FORTES PELA COMUNIDADE.</div></div>
+        </div>
+      </div>
+      <div class="divisoria"><div class="linha"></div><div class="folha">🌿</div><div class="linha"></div></div>`,
+    rodape: `<div class="divisoria"><div class="linha"></div><div class="folha">🌿</div><div class="linha"></div></div>
+      <div class="pilares">
+        <div class="p"><div class="brasao-mini">${miniLogo}</div><div>UNIDOS PELO CAMPO,<br/>FORTES PELA COMUNIDADE.</div></div>
+        <div class="p"><div class="b">🌱</div><div>PRODUÇÃO<br/>SUSTENTÁVEL</div></div>
+        <div class="p"><div class="b">👥</div><div>UNIÃO E<br/>COOPERAÇÃO</div></div>
+        <div class="p"><div class="b">🌾</div><div>DESENVOLVIMENTO<br/>RURAL</div></div>
+        <div class="p"><div class="b">🛡️</div><div>TRANSPARÊNCIA E<br/>COMPROMISSO</div></div>
+      </div>
+      <div class="barra-inferior"></div>`
+  };
+}
+
+function _v(v){ return v && String(v).trim() ? escapeHtml(String(v)) : ''; }
+function _cx(marc){ return `<span class="cx${marc?' marc':''}">${marc?'X':''}</span>`; }
+function _dtParts(d){
+  if(!d) return {dia:'',mes:'',ano:''};
+  const p = String(d).split('-');
+  if(p.length===3) return {ano:p[0],mes:p[1],dia:p[2]};
+  return {dia:'',mes:'',ano:''};
+}
+function nomeMes(mm){
+  const m = ['','janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return m[parseInt(mm,10)]||'';
+}
+
+function imprimirFichaSocio(id){
+  if(!exigir('imprimir')) return;
+  const s = dados.socios.find(x=>x.id===id); if(!s) return;
+  const cab = fichaCabecalho();
+  const nasc = _dtParts(s.nascimento);
+  const adm = _dtParts(s.dataCadastro);
+  const sexoM = (s.sexo||'').toLowerCase().startsWith('m');
+  const sexoF = (s.sexo||'').toLowerCase().startsWith('f');
+  const cat = (s.categoria||'').toLowerCase().trim();
+  const catsPad = ['produtor rural','agricultor familiar','trabalhador rural','pessoa fisica','pessoa física'];
+  const foto = s.foto ? `<img src="${s.foto}" alt="Foto"/>` : 'FOTO 3x4';
+  const html = `<div class="ficha-modelo">
+    ${cab.topo}
+    <div class="titulo-ficha">FICHA DE CADASTRO DE SÓCIO</div>
+    <div class="n-cadastro">Nº de Cadastro: <span class="linh">${_v(numeroSocio(s.numero))}</span></div>
+
+    <div class="foto-cad">${foto}</div>
+
+    <div class="secao-titulo">1. DADOS PESSOAIS</div>
+    <div class="campo"><span class="rot">Nome Completo:</span><span class="val">${_v(s.nome)}</span></div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">Data de Nascimento:</span><span class="val">${nasc.dia?nasc.dia+'/'+nasc.mes+'/'+nasc.ano:''}</span></div>
+      <div class="campo"><span class="rot">Estado Civil:</span><span class="val">${_v(s.estadoCivil)}</span></div>
+      <div class="campo"><span class="rot">Sexo:</span><span class="val" style="border:none;">${_cx(sexoM)} Masculino &nbsp; ${_cx(sexoF)} Feminino</span></div>
+    </div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">CPF:</span><span class="val">${_v(s.cpf)}</span></div>
+      <div class="campo"><span class="rot">RG:</span><span class="val">${_v(s.rg)}</span></div>
+      <div class="campo"><span class="rot">Órgão Emissor / UF:</span><span class="val">${_v(s.orgaoEmissor)}${s.uf?' / '+_v(s.uf):''}</span></div>
+    </div>
+    <div class="row c2">
+      <div class="campo"><span class="rot">Nacionalidade:</span><span class="val">${_v(s.nacionalidade||'Brasileira')}</span></div>
+      <div class="campo"><span class="rot">Naturalidade:</span><span class="val">${_v(s.naturalidade)}</span></div>
+    </div>
+    <div class="campo"><span class="rot">Nome da Mãe:</span><span class="val">${_v(s.mae)}</span></div>
+    <div class="campo"><span class="rot">Nome do Pai:</span><span class="val">${_v(s.pai)}</span></div>
+
+    <div class="secao-titulo">2. DADOS DE CONTATO</div>
+    <div class="row c2">
+      <div class="campo"><span class="rot">Telefone/WhatsApp:</span><span class="val">${_v(s.telefone)}</span></div>
+      <div class="campo"><span class="rot">E-mail:</span><span class="val">${_v(s.email)}</span></div>
+    </div>
+    <div class="campo"><span class="rot">Endereço:</span><span class="val">${_v(s.endereco)}${s.numeroEnd?', '+_v(s.numeroEnd):''}</span></div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">Complemento:</span><span class="val">${_v(s.complemento)}</span></div>
+      <div class="campo"><span class="rot">Bairro:</span><span class="val">${_v(s.bairro)}</span></div>
+      <div class="campo"><span class="rot">CEP:</span><span class="val">${_v(s.cep)}</span></div>
+    </div>
+    <div class="row c2">
+      <div class="campo"><span class="rot">Cidade:</span><span class="val">${_v(s.municipio)}</span></div>
+      <div class="campo"><span class="rot">Estado:</span><span class="val">${_v(s.uf)}</span></div>
+    </div>
+
+    <div class="secao-titulo">3. INFORMAÇÕES PROFISSIONAIS</div>
+    <div class="campo"><span class="rot">Atividade Principal:</span><span class="val">${_v(s.atividade)}</span></div>
+    <div class="campo" style="align-items:center;"><span class="rot">Propriedade Rural:</span> ${_cx(!!s.propriedade)} Sim &nbsp; ${_cx(!s.propriedade)} Não &nbsp;&nbsp; <span class="rot">Nome da Propriedade:</span><span class="val">${_v(s.propriedade)}</span></div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">Área Total (ha):</span><span class="val">${_v(s.area)}</span></div>
+      <div class="campo"><span class="rot">Área Explorada (ha):</span><span class="val">${_v(s.areaExplorada)}</span></div>
+      <div class="campo"><span class="rot">Município:</span><span class="val">${_v(s.municipio)}</span></div>
+    </div>
+    <div class="campo"><span class="rot">Principais Culturas/Atividades:</span><span class="val">${_v(s.culturas||s.atividade)}</span></div>
+
+    <div class="secao-titulo">4. CATEGORIA DE ASSOCIADO</div>
+    <div style="font-size:10pt;margin:4px 0;">
+      <span class="opcao">${_cx(cat==='produtor rural')} Produtor Rural</span>
+      <span class="opcao">${_cx(cat==='agricultor familiar')} Agricultor Familiar</span>
+      <span class="opcao">${_cx(cat==='trabalhador rural')} Trabalhador Rural</span>
+      <span class="opcao">${_cx(cat==='pessoa fisica'||cat==='pessoa física')} Pessoa Física</span>
+      <span class="opcao">${_cx(!!cat && !catsPad.includes(cat))} Outro: <span style="border-bottom:1px solid #333;display:inline-block;min-width:120px;padding:0 4px;">${cat && !catsPad.includes(cat) ? _v(s.categoria) : ''}</span></span>
+    </div>
+
+    <div class="secao-titulo">5. INDICAÇÃO (OPCIONAL)</div>
+    <div class="row c2">
+      <div class="campo"><span class="rot">Indicado por:</span><span class="val">${_v(s.indicadoPor)}</span></div>
+      <div class="campo"><span class="rot">Nº de Sócio:</span><span class="val">${_v(s.indicadoNumero)}</span></div>
+    </div>
+
+    <div class="secao-titulo">6. TERMO DE COMPROMISSO</div>
+    <div class="termo">Declaro que as informações acima são verdadeiras e que estou de acordo com o Estatuto Social da APRSM, comprometendo-me a cumprir seus deveres e contribuir para o fortalecimento da Associação e da Comunidade.</div>
+    <div class="assin-linha"><span class="linh" style="min-width:200px;">${_v(s.municipio||'')}</span>, <span class="linh" style="min-width:70px;">${adm.dia||''}</span> de <span class="linh" style="min-width:130px;">${adm.mes?nomeMes(adm.mes):''}</span> de <span class="linh" style="min-width:80px;">${adm.ano||''}</span>.</div>
+    <div class="assin-linha"><span class="linh">${s.assinatura?`<img src="${s.assinatura}" style="max-height:36px;"/>`:''}</span></div>
+    <div class="assin-legenda">Assinatura do(a) Candidato(a)</div>
+
+    <div class="secao-titulo">7. PREENCHIMENTO DA ASSOCIAÇÃO</div>
+    <div class="row c3">
+      <div class="campo"><span class="rot">Data de Admissão:</span><span class="val">${adm.dia?adm.dia+'/'+adm.mes+'/'+adm.ano:''}</span></div>
+      <div class="campo"><span class="rot">Nº do Sócio:</span><span class="val">${_v(numeroSocio(s.numero))}</span></div>
+      <div class="campo"><span class="rot">Situação:</span><span class="val" style="border:none;">${_cx(s.ativo!==false)} Ativo &nbsp; ${_cx(s.ativo===false)} Inativo</span></div>
+    </div>
+    <div class="row c2">
+      <div class="campo"><span class="rot">Aprovado por:</span><span class="val">${_v(s.aprovadoPor||config.presidente||'')}</span></div>
+      <div class="campo"><span class="rot">Assinatura:</span><span class="val"></span></div>
+    </div>
+
+    <div style="margin-top:14px;padding:8px 10px;border-top:2px dashed #1b5e20;font-size:9.5pt;color:#1b5e20;">
+      <b>Cadastro realizado por:</b> ${_v(s.criadoPor||'—')}${s.criadoCargo?' - '+_v(s.criadoCargo):''}
+      &nbsp;•&nbsp; <b>Data:</b> ${_v(fmtData(s.dataCadastro || (s.criadoEm||'').slice(0,10)))}
+      ${s.horaCadastro?' &nbsp;•&nbsp; <b>Hora:</b> '+_v(s.horaCadastro):''}
+    </div>
+
+    ${cab.rodape}
+  </div>`;
+  imprimirHTML(html);
+}
+
+function imprimirListaSocios(){
+  if(!exigir('imprimir')) return;
+  const lista = dados.socios.slice().sort((a,b)=>a.numero-b.numero);
+  const linhas = lista.map(s=>`<tr>
+    <td>${escapeHtml(numeroSocio(s.numero))}</td><td>${escapeHtml(s.nome)}</td>
+    <td>${escapeHtml(s.cpf||'')}</td><td>${escapeHtml(s.telefone||'')}</td>
+    <td>${s.ativo!==false?'Ativo':'Inativo'}</td></tr>`).join('');
+  imprimirHTML(`<div class="doc-pdf">${headerFicha('LISTA DE SÓCIOS')}
+    <table style="width:100%;border-collapse:collapse;font-size:12px;" border="1" cellpadding="5">
+      <thead style="background:#1b5e20;color:#fff;"><tr><th>Nº</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Status</th></tr></thead>
+      <tbody>${linhas}</tbody></table>
+    <p style="margin-top:10px;"><b>Total:</b> ${lista.length} sócios</p>${footerFicha()}</div>`);
+}
+
+function imprimirPrestacao(){
+  if(!exigir('imprimir')) return;
+  const ano = String(anoAtual());
+  const pagsAno = dados.pagamentos.filter(p=>p.data && p.data.startsWith(ano));
+  const recAno = dados.receitas.filter(p=>p.data && p.data.startsWith(ano));
+  const despAno = dados.despesas.filter(p=>p.data && p.data.startsWith(ano));
+  const tPag = pagsAno.reduce((a,p)=>a+Number(p.valor||0),0);
+  const tRec = recAno.reduce((a,p)=>a+Number(p.valor||0),0);
+  const tDesp = despAno.reduce((a,p)=>a+Number(p.valor||0),0);
+  imprimirHTML(`<div class="doc-pdf">${headerFicha('PRESTAÇÃO DE CONTAS - '+ano)}
+    <div class="ficha-secao">Resumo</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;" border="1" cellpadding="6">
+      <tr><td><b>Total de Mensalidades</b></td><td>${fmtDinheiro(tPag)}</td></tr>
+      <tr><td><b>Total de Receitas</b></td><td>${fmtDinheiro(tRec)}</td></tr>
+      <tr><td><b>Total de Despesas</b></td><td>${fmtDinheiro(tDesp)}</td></tr>
+      <tr style="background:#e8f5e9;"><td><b>SALDO</b></td><td><b>${fmtDinheiro(tPag+tRec-tDesp)}</b></td></tr>
+    </table>
+    <div class="ficha-secao">Receitas (${recAno.length})</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;" border="1" cellpadding="4">
+      <thead style="background:#1b5e20;color:#fff;"><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+      <tbody>${recAno.map(r=>`<tr><td>${fmtData(r.data)}</td><td>${escapeHtml(r.descricao)}</td><td>${escapeHtml(r.categoria||'')}</td><td>${fmtDinheiro(r.valor)}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center">—</td></tr>'}</tbody>
+    </table>
+    <div class="ficha-secao">Despesas (${despAno.length})</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;" border="1" cellpadding="4">
+      <thead style="background:#1b5e20;color:#fff;"><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+      <tbody>${despAno.map(d=>`<tr><td>${fmtData(d.data)}</td><td>${escapeHtml(d.descricao)}</td><td>${escapeHtml(d.categoria||'')}</td><td>${fmtDinheiro(d.valor)}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center">—</td></tr>'}</tbody>
+    </table>
+    <p style="margin-top:60px;text-align:center;">_______________________________________<br/>Tesoureiro</p>
+    <p style="margin-top:30px;text-align:center;">_______________________________________<br/>Presidente</p>
+    ${footerFicha()}</div>`);
+}
+
+/* ============================================================
+   Inicialização
+   ============================================================ */
+carregar();
+verificarPrimeiroAcesso();
+aplicarConfigVisual();
+carregarNuvem().then(()=>{
+  document.getElementById('tela-login').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('topo-usuario').textContent=usuarioAtual.nome+' • '+usuarioAtual.cargo;
+  aplicarConfigVisual(); mostrarPagina('dashboard');
+}).catch(()=>{});
+// atualizar badge periodicamente
+setInterval(atualizarBadgeAlertas, 30000);
+</script>
+<script src="https://cdn.gpteng.co/lovable.js" type="module"></script></body>
+</html>
