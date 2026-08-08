@@ -527,7 +527,7 @@ body.imprimindo > *:not(#area-impressao){display:none !important;}
 <script>
 /* ============================================================
    APRSM - Núcleo do Sistema
-   Persistência compartilhada e segura no Lovable Cloud.
+   Persistência permanente com armazenamento local e sincronização opcional no backend.
    ============================================================ */
 
 const CHAVE = 'aprsm_dados_v1';
@@ -590,6 +590,7 @@ function carregar(){
     dados = JSON.parse(localStorage.getItem(CHAVE)) || dadosIniciais();
     config = JSON.parse(localStorage.getItem(CHAVE_CONFIG)) || configIniciais();
   }catch(e){ dados = dadosIniciais(); config = configIniciais(); }
+  migrarEstruturaPermanente();
   // Garantias
   if(!dados.usuarios || dados.usuarios.length===0){
     dados.usuarios = dadosIniciais().usuarios;
@@ -599,7 +600,31 @@ function carregar(){
   if(!dados.proxNumSocio) dados.proxNumSocio = 1;
   if(!dados.proxNumAta) dados.proxNumAta = 1;
 }
+function migrarEstruturaPermanente(){
+  /*
+    Regra de não perda de dados: este bloco apenas acrescenta campos que
+    estiverem faltando em instalações antigas. Ele nunca limpa arrays, nunca
+    recria cadastros existentes e nunca substitui dados reais por exemplos.
+  */
+  if(!dados || typeof dados !== 'object') dados = dadosIniciais();
+  if(!config || typeof config !== 'object') config = configIniciais();
+  dados.schemaVersao = dados.schemaVersao || 1;
+  dados.atualizadoEm = dados.atualizadoEm || new Date().toISOString();
+}
+async function apiAprsm(payload, metodo='POST'){
+  const opcoes = {method:metodo,credentials:'include'};
+  if(payload !== undefined){
+    opcoes.headers = {'Content-Type':'application/json'};
+    opcoes.body = JSON.stringify(payload);
+  }
+  const r = await fetch('/api/public/aprsm', opcoes);
+  let resp = null;
+  try{ resp = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error((resp&&resp.error)||'Backend indisponível.');
+  return resp;
+}
 function cacheLocal(){
+  if(dados) dados.atualizadoEm = new Date().toISOString();
   localStorage.setItem(CHAVE, JSON.stringify(dados));
   localStorage.setItem(CHAVE_CONFIG, JSON.stringify(config));
 }
@@ -610,17 +635,14 @@ function salvar(){
   return new Promise(resolve=>{
     salvamentoTimer=setTimeout(async()=>{
       try{
-        const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'save',dados,config})});
-        if(!r.ok) throw new Error((await r.json()).error||'Falha ao salvar');
+        await apiAprsm({action:'save',dados,config});
       }catch(e){ toast('Não foi possível sincronizar agora. Os dados continuam protegidos neste aparelho.','erro'); }
       resolve();
     },250);
   });
 }
 async function carregarNuvem(){
-  const r=await fetch('/api/public/aprsm',{credentials:'include'});
-  if(!r.ok) throw new Error('Sessão expirada');
-  const estado=await r.json();
+  const estado=await apiAprsm(undefined,'GET');
   const dadosLocais=dados;
   const configLocal=config;
   const nuvemVazia=!estado.dados || Object.keys(estado.dados).length===0;
@@ -879,12 +901,16 @@ document.getElementById('form-login').addEventListener('submit', async function(
   const u = document.getElementById('login-usuario').value.trim();
   const s = document.getElementById('login-senha').value;
   try{
-    const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'login',usuario:u,senha:s})});
-    const resp=await r.json();
-    if(!r.ok) throw new Error(resp.error||'Usuário ou senha inválidos.');
+    const resp=await apiAprsm({action:'login',usuario:u,senha:s});
     if(resp.user) usuarioAtual=resp.user;
     try{ await carregarNuvem(); }catch(e){ if(!usuarioAtual) throw e; }
-  }catch(err){ toast(err.message||'Não foi possível entrar.','erro'); return; }
+  }catch(err){
+    const user = dados.usuarios.find(x=>x.usuario===u && x.ativo!==false);
+    if(!user || !conferirSenha(user, s)){
+      toast('Usuário ou senha inválidos.','erro'); return;
+    }
+    usuarioAtual = copiarUsuariosSemSenha([user])[0];
+  }
   const user = usuarioAtual || {nome:u};
   document.getElementById('tela-login').style.display='none';
   document.getElementById('app').style.display='block';
@@ -895,7 +921,7 @@ document.getElementById('form-login').addEventListener('submit', async function(
 });
 
 async function sair(){
-  try{ await fetch('/api/public/aprsm',{method:'DELETE',credentials:'include'}); }catch(e){}
+  try{ await apiAprsm(undefined,'DELETE'); }catch(e){}
   usuarioAtual = null;
   document.getElementById('app').style.display='none';
   document.getElementById('tela-login').style.display='flex';
@@ -920,8 +946,14 @@ function modalMinhaSenha(){
     const fd = new FormData(e.target);
     if(fd.get('nova') !== fd.get('nova2')){ toast('As senhas novas não coincidem.','erro'); return; }
     try{
-      const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'changePassword',atual:fd.get('atual'),nova:fd.get('nova')})});
-      const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
+      try{ await apiAprsm({action:'changePassword',atual:fd.get('atual'),nova:fd.get('nova')}); }
+      catch(apiErr){
+        const local = dados.usuarios.find(u=>u.id===usuarioAtual.id || u.usuario===usuarioAtual.usuario);
+        if(!local || !conferirSenha(local, fd.get('atual'))) throw new Error('Senha atual incorreta.');
+        definirSenha(local, fd.get('nova'));
+        usuarioAtual = copiarUsuariosSemSenha([local])[0];
+        await salvar();
+      }
       fecharModal(); toast('Senha alterada com sucesso!');
     }catch(err){ toast(err.message||'Não foi possível alterar a senha.','erro'); }
   };
@@ -1625,11 +1657,24 @@ function modalUsuario(id){
     };
     if(!id && !senhaNova){ toast('Informe a senha do novo usuário.','erro'); return; }
     try{
-      const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'saveUser',id:id||undefined,...dadosU,senha:senhaNova||undefined})});
-      const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
-      await carregarNuvem(); fecharModal(); renderUsuarios(); toast(id?'Usuário atualizado!':'Usuário cadastrado!');
+      try{
+        await apiAprsm({action:'saveUser',id:id||undefined,...dadosU,senha:senhaNova||undefined});
+        await carregarNuvem();
+      }catch(apiErr){
+        salvarUsuarioLocal(id, dadosU, senhaNova);
+        await salvar();
+      }
+      fecharModal(); renderUsuarios(); toast(id?'Usuário atualizado!':'Usuário cadastrado!');
     }catch(err){ toast(err.message||'Não foi possível salvar o usuário.','erro'); }
   };
+}
+function salvarUsuarioLocal(id, dadosU, senhaNova){
+  const repetido = dados.usuarios.some(u=>u.usuario===dadosU.usuario && u.id!==id);
+  if(repetido) throw new Error('Já existe usuário com este login.');
+  let alvo = id ? dados.usuarios.find(u=>u.id===id) : null;
+  if(!alvo){ alvo = {id:gerarId()}; dados.usuarios.push(alvo); }
+  Object.assign(alvo, dadosU);
+  if(senhaNova) definirSenha(alvo, senhaNova);
 }
 async function excluirUsuario(id){
   if(!ehAdmin()){ toast('Apenas o Administrador pode excluir usuários.','erro'); return; }
@@ -1637,9 +1682,14 @@ async function excluirUsuario(id){
   if(u && u.usuario==='admin'){ toast('Não é possível excluir o admin.','erro'); return; }
   if(!confirmar('Excluir este usuário?')) return;
   try{
-    const r=await fetch('/api/public/aprsm',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({action:'deleteUser',id})});
-    const resp=await r.json(); if(!r.ok) throw new Error(resp.error);
-    await carregarNuvem(); renderUsuarios(); toast('Usuário excluído.','info');
+    try{
+      await apiAprsm({action:'deleteUser',id});
+      await carregarNuvem();
+    }catch(apiErr){
+      dados.usuarios = dados.usuarios.filter(x=>x.id!==id);
+      await salvar();
+    }
+    renderUsuarios(); toast('Usuário excluído.','info');
   }catch(err){ toast(err.message||'Não foi possível excluir o usuário.','erro'); }
 }
 
@@ -2831,6 +2881,7 @@ function imprimirPrestacao(){
    Inicialização
    ============================================================ */
 carregar();
+garantirAdmin();
 verificarPrimeiroAcesso();
 aplicarConfigVisual();
 carregarNuvem().then(()=>{
